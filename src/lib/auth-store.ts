@@ -36,6 +36,16 @@ export interface UserDevice {
   firstSeenAt: string;
   lastSeenAt: string;
   loginCount: number;
+  gpuRenderer?: string;
+  gpuVendor?: string;
+  batteryLevel?: string;
+  batteryCharging?: boolean;
+  canvasFingerprint?: string;
+  audioSampleRate?: number;
+  adBlockDetected?: boolean;
+  incognitoDetected?: boolean;
+  downlinkSpeed?: string;
+  rtt?: string;
 }
 
 export interface UserScanRecord {
@@ -564,6 +574,14 @@ function recordDeviceForUser(
     if (telemetry.city) existing.city = telemetry.city;
     if (telemetry.hardwareConcurrency) existing.hardwareConcurrency = telemetry.hardwareConcurrency;
     if (telemetry.deviceMemory) existing.deviceMemory = telemetry.deviceMemory;
+    if (telemetry.gpuRenderer) existing.gpuRenderer = telemetry.gpuRenderer;
+    if (telemetry.gpuVendor) existing.gpuVendor = telemetry.gpuVendor;
+    if (telemetry.canvasFingerprint) existing.canvasFingerprint = telemetry.canvasFingerprint;
+    if (telemetry.audioSampleRate) existing.audioSampleRate = telemetry.audioSampleRate;
+    if (telemetry.adBlockDetected !== undefined) existing.adBlockDetected = telemetry.adBlockDetected;
+    if (telemetry.batteryLevel) existing.batteryLevel = telemetry.batteryLevel;
+    if (telemetry.downlinkSpeed) existing.downlinkSpeed = telemetry.downlinkSpeed;
+    if (telemetry.rtt) existing.rtt = telemetry.rtt;
     return existing;
   }
 
@@ -592,6 +610,16 @@ function recordDeviceForUser(
     firstSeenAt: now,
     lastSeenAt: now,
     loginCount: isLogin ? 1 : 0,
+    gpuRenderer: telemetry.gpuRenderer,
+    gpuVendor: telemetry.gpuVendor,
+    batteryLevel: telemetry.batteryLevel,
+    batteryCharging: telemetry.batteryCharging,
+    canvasFingerprint: telemetry.canvasFingerprint,
+    audioSampleRate: telemetry.audioSampleRate,
+    adBlockDetected: telemetry.adBlockDetected,
+    incognitoDetected: telemetry.incognitoDetected,
+    downlinkSpeed: telemetry.downlinkSpeed,
+    rtt: telemetry.rtt,
   };
 
   user.devices.unshift(newDev);
@@ -785,6 +813,96 @@ export function verifySessionToken(
     return payload;
   } catch {
     return null;
+  }
+}
+
+export async function updateUserPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<boolean> {
+  const users = globalThis.__KODAND_USERS__!;
+  let user = users.get(userId);
+  if (!user) {
+    for (const u of users.values()) {
+      if (u.id === userId) {
+        user = u;
+        break;
+      }
+    }
+  }
+
+  const currentHash = await hashPassword(currentPassword);
+  if (user && user.passwordHash && user.passwordHash !== currentHash) {
+    throw new Error("Current password does not match.");
+  }
+
+  if (newPassword.length < 6) {
+    throw new Error("New password must be at least 6 characters long.");
+  }
+
+  const newHash = await hashPassword(newPassword);
+  if (user) {
+    user.passwordHash = newHash;
+    user.activityLogs.unshift({
+      id: `act-${Date.now()}-pwd`,
+      action: "password_changed",
+      details: "Account password successfully updated",
+      device: user.lastActiveDevice,
+      ip: user.lastActiveIp,
+      timestamp: new Date().toISOString(),
+    });
+  }
+  return true;
+}
+
+export function createPasswordResetToken(email: string): string {
+  const emailNorm = email.trim().toLowerCase();
+  const payload = {
+    email: emailNorm,
+    type: "pwd_reset",
+    exp: Date.now() + 1000 * 60 * 15, // 15 minutes
+  };
+  return btoa(JSON.stringify(payload));
+}
+
+export async function verifyAndResetPassword(token: string, newPassword: string): Promise<boolean> {
+  try {
+    const json = atob(token);
+    const payload = JSON.parse(json);
+    if (!payload.email || payload.type !== "pwd_reset" || payload.exp < Date.now()) {
+      throw new Error("Reset link has expired or is invalid. Please request a new one.");
+    }
+
+    if (newPassword.length < 6) {
+      throw new Error("New password must be at least 6 characters long.");
+    }
+
+    const users = globalThis.__KODAND_USERS__!;
+    let targetUser: User | null = null;
+    for (const u of users.values()) {
+      if (u.email.toLowerCase() === payload.email.toLowerCase()) {
+        targetUser = u;
+        break;
+      }
+    }
+
+    const newHash = await hashPassword(newPassword);
+    if (targetUser) {
+      targetUser.passwordHash = newHash;
+      targetUser.activityLogs.unshift({
+        id: `act-${Date.now()}-reset`,
+        action: "password_reset",
+        details: "Password reset completed via secure token verification",
+        device: targetUser.lastActiveDevice,
+        ip: targetUser.lastActiveIp,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return true;
+  } catch (err: any) {
+    throw new Error(err.message || "Failed to reset password.");
   }
 }
 

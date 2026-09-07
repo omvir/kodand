@@ -576,6 +576,130 @@ async function runTestSuite() {
     recordResult("TC-ADMIN-EXPORT", "Admin Complete Data Export (CSV & JSON Users/Devices)", false, err.message);
   }
 
+  // TC-AUTH-GOOGLE: Google OAuth Endpoint & Redirection Verification
+  try {
+    const t0 = Date.now();
+    const gResp = await fetch(`${BASE_URL}/api/auth/google`, { redirect: "manual" });
+    const isRedirect = gResp.status === 302 || gResp.status === 307 || gResp.status === 200;
+    recordResult(
+      "TC-AUTH-GOOGLE",
+      "Google Sign-In OAuth Redirection & Session Gateway",
+      isRedirect,
+      `HTTP Status: ${gResp.status}, Location: ${gResp.headers.get("location") || "direct session"}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-AUTH-GOOGLE", "Google Sign-In OAuth Redirection & Session Gateway", false, err.message);
+  }
+
+  // TC-AUTH-PWD-CHG: In-App User Password Change Flow
+  try {
+    const t0 = Date.now();
+    const chgResp = await fetch(`${BASE_URL}/api/auth/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        currentPassword: "securePassword123",
+        newPassword: "newSecurePassword2026!",
+      }),
+    });
+    const chgData = await chgResp.json();
+    const passed = chgResp.ok && chgData.success;
+    recordResult(
+      "TC-AUTH-PWD-CHG",
+      "User In-App Password Change with Current Password Verification",
+      passed,
+      `Password Update: ${passed ? "SUCCESS" : chgData.error}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-AUTH-PWD-CHG", "User In-App Password Change with Current Password Verification", false, err.message);
+  }
+
+  // TC-AUTH-PWD-RST: Token-based Forgot Password & Reset Password Flow
+  try {
+    const t0 = Date.now();
+    const forgotResp = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: testUserEmail }),
+    });
+    const forgotData = await forgotResp.json();
+    const resetToken = forgotData.resetToken;
+
+    let resetPassed = false;
+    if (forgotResp.ok && resetToken) {
+      const resetResp = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: resetToken,
+          newPassword: "brandNewResetPassword2026#",
+        }),
+      });
+      const resetData = await resetResp.json();
+      resetPassed = resetResp.ok && resetData.success;
+    }
+
+    recordResult(
+      "TC-AUTH-PWD-RST",
+      "Cryptographic Token-Based Forgot & Reset Password Flow",
+      forgotResp.ok && resetPassed,
+      `Token Generated: ${Boolean(resetToken)}, Password Reset Verified: ${resetPassed ? "YES" : "NO"}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-AUTH-PWD-RST", "Cryptographic Token-Based Forgot & Reset Password Flow", false, err.message);
+  }
+
+  // TC-DEEP-HARDWARE: Deep Hardware (GPU, Canvas, AudioContext, AdBlock) Telemetry
+  try {
+    const t0 = Date.now();
+    const deepResp = await fetch(`${BASE_URL}/api/auth/device`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        deviceSpecs: {
+          deviceName: "Google Chrome on Windows 11 (Desktop)",
+          browser: "Google Chrome",
+          os: "Windows 10/11",
+          deviceType: "desktop",
+          screenResolution: "3840x2160 (1.5x DPR)",
+          gpuRenderer: "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 Direct3D11 vs_5_0 ps_5_0)",
+          gpuVendor: "NVIDIA Corporation",
+          canvasFingerprint: "cvs-kodand-789a",
+          audioSampleRate: 48000,
+          adBlockDetected: false,
+          batteryLevel: "100%",
+          downlinkSpeed: "100 Mbps",
+          rtt: "15 ms",
+        },
+      }),
+    });
+    const deepData = await deepResp.json();
+    const passed =
+      deepResp.ok &&
+      deepData.success &&
+      deepData.device?.gpuRenderer?.includes("RTX 4090") &&
+      deepData.device?.canvasFingerprint === "cvs-kodand-789a";
+
+    recordResult(
+      "TC-DEEP-HARDWARE",
+      "Deep GPU Graphics, Canvas, Audio & AdBlock Telemetry",
+      passed,
+      `GPU: ${deepData?.device?.gpuRenderer?.slice(0, 30)}..., Canvas: ${deepData?.device?.canvasFingerprint}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-DEEP-HARDWARE", "Deep GPU Graphics, Canvas, Audio & AdBlock Telemetry", false, err.message);
+  }
+
   // Print Summary Table
   const total = results.length;
   const passedCount = results.filter((r) => r.passed).length;

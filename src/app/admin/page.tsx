@@ -957,6 +957,31 @@ export default function AdminMonitoringPage() {
                             <span className="text-zinc-500 block text-[9px]">FIRST SEEN</span>
                             <span className="text-zinc-400 font-mono text-[10px]">{new Date(device.firstSeenAt).toLocaleDateString()}</span>
                           </div>
+
+                          {/* Deep Hardware & Security Row */}
+                          <div className="sm:col-span-2">
+                            <span className="text-zinc-500 block text-[9px]">GPU GRAPHICS HARDWARE</span>
+                            <span className="text-emerald-400/90 font-mono text-[10px] truncate block" title={device.gpuRenderer || "Standard Graphics"}>
+                              {device.gpuRenderer || "Generic GPU Acceleration"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 block text-[9px]">CANVAS / AUDIO</span>
+                            <span className="text-zinc-300 font-mono text-[10px]">
+                              {device.canvasFingerprint || "cvs-std"} {device.audioSampleRate ? `· ${device.audioSampleRate}Hz` : ""}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 block text-[9px]">SECURITY & ADBLOCK</span>
+                            <span className="text-zinc-300 text-[10px]">
+                              {device.adBlockDetected ? (
+                                <span className="text-amber-400 font-bold">AdBlock Active</span>
+                              ) : (
+                                <span className="text-emerald-400">AdBlock Inactive</span>
+                              )}
+                              {device.batteryLevel ? ` · ${device.batteryLevel}` : ""}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Full User-Agent string */}

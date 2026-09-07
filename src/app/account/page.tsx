@@ -21,6 +21,8 @@ import {
   Activity,
   ArrowRight,
   CheckCircle2,
+  Lock,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function AccountPage() {
@@ -220,9 +222,159 @@ export default function AccountPage() {
             </div>
           </form>
         </Card>
+
+        {/* Security & Password Management Card */}
+        <Card className="border border-zinc-800 bg-zinc-950/60 p-6 rounded-2xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Shield className="size-4 text-emerald-400" /> Security & Password Management
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Update your account password or request a secure time-sensitive reset link.
+              </p>
+            </div>
+          </div>
+
+          <ChangePasswordForm />
+        </Card>
       </main>
 
       <AppFooter />
     </div>
+  );
+}
+
+function ChangePasswordForm() {
+  const [currentPassword, setCurrentPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState(false);
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword) return;
+
+    if (newPassword.length < 6) {
+      setError("New password must be at least 6 characters long.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("New passwords do not match. Please re-enter.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to change password.");
+      }
+
+      setSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setSuccess(false), 3500);
+    } catch (err: any) {
+      setError(err.message || "Failed to update password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handlePasswordSubmit} className="space-y-4 pt-2">
+      {error && (
+        <div className="p-3 rounded-lg border border-red-500/40 bg-red-950/30 text-red-300 text-xs flex items-center gap-2">
+          <ShieldAlert className="size-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="p-3 rounded-lg border border-emerald-500/40 bg-emerald-950/30 text-emerald-300 text-xs flex items-center gap-2">
+          <CheckCircle2 className="size-4 shrink-0" />
+          <span>Password changed successfully. Your account is secured.</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label className="text-xs text-zinc-300 block mb-1">Current Password</label>
+          <div className="relative">
+            <Lock className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="bg-zinc-900 border-zinc-700 text-xs pl-8 h-9"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs text-zinc-300 block mb-1">New Password</label>
+          <div className="relative">
+            <Lock className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Min 6 characters"
+              required
+              className="bg-zinc-900 border-zinc-700 text-xs pl-8 h-9"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs text-zinc-300 block mb-1">Confirm New Password</label>
+          <div className="relative">
+            <Lock className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repeat password"
+              required
+              className="bg-zinc-900 border-zinc-700 text-xs pl-8 h-9"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <Link
+          href="/forgot-password"
+          className="text-[11px] text-zinc-500 hover:text-emerald-400 transition-colors"
+        >
+          Forgot your current password? Request a reset link →
+        </Link>
+
+        <Button
+          type="submit"
+          disabled={loading || !currentPassword || !newPassword || !confirmPassword}
+          size="sm"
+          className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs h-8 px-4"
+        >
+          {loading ? "Updating..." : "Update Password"}
+        </Button>
+      </div>
+    </form>
   );
 }
