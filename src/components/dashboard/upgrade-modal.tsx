@@ -4,7 +4,8 @@ import * as React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Sparkles, Zap, Shield, ArrowRight, Building2, UserCheck } from "lucide-react";
+import { Check, Crown, Sparkles, Zap, Shield, ArrowRight, Building2, UserCheck, QrCode } from "lucide-react";
+import { UpiPaymentModal } from "@/components/dashboard/upi-payment-modal";
 
 export interface UpgradeModalProps {
   open: boolean;
@@ -23,6 +24,7 @@ export function UpgradeModal({
   const [selectedTier, setSelectedTier] = React.useState<"starter" | "agency">(defaultTier);
   const [isUpgrading, setIsUpgrading] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
+  const [upiOpen, setUpiOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (defaultTier) setSelectedTier(defaultTier);
@@ -206,28 +208,49 @@ export function UpgradeModal({
             <span>14-day money back guarantee · Cancel anytime</span>
           </div>
 
-          <Button
-            onClick={handleCheckout}
-            disabled={isUpgrading || success}
-            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm px-6 h-10 shadow-lg shadow-emerald-500/20"
-          >
-            {success ? (
-              <span className="flex items-center gap-1.5 text-emerald-950">
-                <Check className="size-4" /> Activated! Welcome to Pro
-              </span>
-            ) : isUpgrading ? (
-              <span className="flex items-center gap-1.5">
-                <Zap className="size-4 animate-spin" /> Processing...
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5">
-                Upgrade to {selectedTier === "agency" ? "Agency Pro" : "Starter"}
-                <ArrowRight className="size-4" />
-              </span>
-            )}
-          </Button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false);
+                setUpiOpen(true);
+              }}
+              className="border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-300 text-xs font-semibold h-10 px-3"
+            >
+              <span className="mr-1">🇮🇳</span> UPI / QR
+            </Button>
+
+            <Button
+              onClick={handleCheckout}
+              disabled={isUpgrading || success}
+              className="flex-1 sm:flex-initial bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm px-6 h-10 shadow-lg shadow-emerald-500/20"
+            >
+              {success ? (
+                <span className="flex items-center gap-1.5 text-emerald-950">
+                  <Check className="size-4" /> Activated! Welcome to Pro
+                </span>
+              ) : isUpgrading ? (
+                <span className="flex items-center gap-1.5">
+                  <Zap className="size-4 animate-spin" /> Processing...
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  Upgrade to {selectedTier === "agency" ? "Agency Pro" : "Starter"}
+                  <ArrowRight className="size-4" />
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
+
+      <UpiPaymentModal
+        open={upiOpen}
+        onOpenChange={setUpiOpen}
+        tier={selectedTier}
+        cycle={billingCycle}
+      />
     </Dialog>
   );
 }

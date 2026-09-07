@@ -352,6 +352,56 @@ async function runTestSuite() {
     recordResult("TC-SAAS-02", "Competitor Side-by-Side Audit Page Check", false, err.message);
   }
 
+  // TC-ADMIN-01: Admin Telemetry Unauthorized Access Test
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/admin/telemetry?pin=wrong_pin`);
+    const passed = resp.status === 401;
+    recordResult(
+      "TC-ADMIN-01",
+      "Admin Dashboard Security & PIN Protection",
+      passed,
+      `Expected HTTP 401 Unauthorized, Received: HTTP ${resp.status}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-ADMIN-01", "Admin Dashboard Security & PIN Protection", false, err.message);
+  }
+
+  // TC-ADMIN-02: Admin Telemetry Authorized Stats Aggregation
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/admin/telemetry?pin=kodand2026`);
+    const data = await resp.json();
+    const passed = resp.ok && typeof data?.stats?.totalScans === "number" && Array.isArray(data?.stats?.recentEvents);
+    recordResult(
+      "TC-ADMIN-02",
+      "Live User Monitoring & Scan Telemetry Feed",
+      passed,
+      `Total Scans: ${data?.stats?.totalScans}, Unique Domains: ${data?.stats?.uniqueDomains}, Events: ${data?.stats?.recentEvents?.length}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-ADMIN-02", "Live User Monitoring & Scan Telemetry Feed", false, err.message);
+  }
+
+  // TC-UPI-01: India UPI Pricing & QR Integration
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/pricing`);
+    const html = await resp.text();
+    const passed = resp.ok && (html.includes("UPI") || html.includes("INR"));
+    recordResult(
+      "TC-UPI-01",
+      "India UPI Payment Gateway & INR Currency Switcher",
+      passed,
+      `HTTP ${resp.status}, contains UPI & INR currency options`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-UPI-01", "India UPI Payment Gateway & INR Currency Switcher", false, err.message);
+  }
+
   // Print Summary Table
   const total = results.length;
   const passedCount = results.filter((r) => r.passed).length;

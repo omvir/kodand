@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppFooter } from "@/components/layout/app-footer";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
+import { UpiPaymentModal } from "@/components/dashboard/upi-payment-modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,32 +17,51 @@ import {
   Shield,
   HelpCircle,
   ArrowRight,
-  Building2,
-  UserCheck,
   Calculator,
-  ChevronDown,
+  QrCode,
 } from "lucide-react";
 
 export default function PricingPage() {
+  const [currency, setCurrency] = React.useState<"INR" | "USD">("INR");
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "yearly">("yearly");
   const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
+  const [upiModalOpen, setUpiModalOpen] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<"starter" | "agency">("agency");
 
   // Interactive Agency ROI Calculator state
-  const [clientCount, setClientCount] = React.useState(6);
-  const [auditFee, setAuditFee] = React.useState(250);
+  const [clientCount, setClientCount] = React.useState(5);
+  const [auditFee, setAuditFee] = React.useState(currency === "INR" ? 15000 : 250);
+
+  // Update audit fee default when switching currency
+  React.useEffect(() => {
+    if (currency === "INR") {
+      setAuditFee(15000);
+    } else {
+      setAuditFee(250);
+    }
+  }, [currency]);
 
   const monthlyRevenue = clientCount * auditFee;
-  const kodandCost = billingCycle === "yearly" ? 39 : 49;
+  const kodandCost = currency === "INR"
+    ? (billingCycle === "yearly" ? 2915 : 3499)
+    : (billingCycle === "yearly" ? 39 : 49);
   const netProfit = monthlyRevenue - kodandCost;
   const roiMultiplier = Math.round((monthlyRevenue / kodandCost) * 10) / 10;
 
   const handleOpenUpgrade = (tier: "starter" | "agency") => {
     setSelectedTier(tier);
-    setUpgradeModalOpen(true);
+    if (currency === "INR") {
+      setUpiModalOpen(true);
+    } else {
+      setUpgradeModalOpen(true);
+    }
   };
 
   const faqs = [
+    {
+      q: "Do you support UPI payments (Google Pay, PhonePe, Paytm, BHIM)?",
+      a: "Yes! For users in India, we provide instant 1-click UPI payments via PhonePe, Google Pay, Paytm, and dynamic QR code scan with 0% gateway fees and instant activation.",
+    },
     {
       q: "Can I remove all KODAND branding from audit reports?",
       a: "Yes! With the Agency Pro plan, you can upload your agency name, custom subtitle, and website URL. All PDF reports, covers, and headers will carry your custom branding with zero KODAND watermarks, ready to be sent directly to your paying clients.",
@@ -58,10 +78,6 @@ export default function PricingPage() {
       q: "How do scan limits work?",
       a: "Scans refresh on your monthly billing date. Full 360° scans, individual dimension tests, and competitor side-by-side audits each consume 1 scan credit.",
     },
-    {
-      q: "Do you offer a refund guarantee?",
-      a: "Yes! We offer a full, no-questions-asked 14-day money-back guarantee on all paid plans.",
-    },
   ];
 
   return (
@@ -70,7 +86,7 @@ export default function PricingPage() {
 
       <main className="flex-1 max-w-7xl mx-auto px-4 py-12 md:py-16 w-full">
         {/* Hero Section */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
             <Sparkles className="size-3.5" /> Simple, Transparent SaaS Pricing
           </div>
@@ -78,36 +94,65 @@ export default function PricingPage() {
             Invest in Audits That <span className="text-emerald-400">Win Paying Clients</span>
           </h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto">
-            Sub-second technical audits, security intelligence, and unbranded white-label client reports designed for web freelancers and agencies.
+            Sub-second technical audits, security intelligence, and unbranded white-label client reports designed for web freelancers and agencies worldwide.
           </p>
 
-          {/* Billing Cycle Switch */}
-          <div className="mt-8 inline-flex items-center bg-zinc-900 border border-zinc-800 p-1.5 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setBillingCycle("monthly")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                billingCycle === "monthly"
-                  ? "bg-zinc-800 text-white shadow-md"
-                  : "text-zinc-400 hover:text-zinc-200"
-              }`}
-            >
-              Monthly Billing
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle("yearly")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
-                billingCycle === "yearly"
-                  ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/20"
-                  : "text-zinc-400 hover:text-zinc-200"
-              }`}
-            >
-              <span>Yearly Billing</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/25 font-bold uppercase tracking-wider">
-                Save 20%
-              </span>
-            </button>
+          {/* Currency and Billing Selectors */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Currency Toggle */}
+            <div className="inline-flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl text-xs">
+              <button
+                type="button"
+                onClick={() => setCurrency("INR")}
+                className={`px-3.5 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+                  currency === "INR"
+                    ? "bg-emerald-500 text-black shadow-md"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <span>🇮🇳 INR (₹) · UPI</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrency("USD")}
+                className={`px-3.5 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+                  currency === "USD"
+                    ? "bg-zinc-800 text-white shadow-md"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <span>🌐 USD ($)</span>
+              </button>
+            </div>
+
+            {/* Billing Cycle Switch */}
+            <div className="inline-flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl text-xs">
+              <button
+                type="button"
+                onClick={() => setBillingCycle("monthly")}
+                className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all ${
+                  billingCycle === "monthly"
+                    ? "bg-zinc-800 text-white shadow-md"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle("yearly")}
+                className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                  billingCycle === "yearly"
+                    ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/20"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <span>Yearly</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/25 font-bold uppercase tracking-wider">
+                  Save 20%
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -125,7 +170,9 @@ export default function PricingPage() {
               </div>
 
               <div className="my-6 pb-6 border-b border-zinc-800">
-                <span className="text-4xl font-extrabold text-white">$0</span>
+                <span className="text-4xl font-extrabold text-white">
+                  {currency === "INR" ? "₹0" : "$0"}
+                </span>
                 <span className="text-xs text-zinc-400 ml-1">/ forever</span>
               </div>
 
@@ -170,19 +217,23 @@ export default function PricingPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-white mt-1">Growth</h3>
                 <p className="text-xs text-zinc-400 mt-2">
-                  For freelancers and webmasters managing up to 10 websites.
+                  For freelancers and webmasters managing client sites.
                 </p>
               </div>
 
               <div className="my-6 pb-6 border-b border-zinc-800">
                 <div className="flex items-baseline">
                   <span className="text-4xl font-extrabold text-white">
-                    {billingCycle === "yearly" ? "$15" : "$19"}
+                    {currency === "INR"
+                      ? (billingCycle === "yearly" ? "₹1,080" : "₹1,299")
+                      : (billingCycle === "yearly" ? "$15" : "$19")}
                   </span>
                   <span className="text-xs text-zinc-400 ml-1">/ month</span>
                 </div>
                 <span className="text-[11px] text-zinc-500">
-                  {billingCycle === "yearly" ? "Billed $180 annually" : "Billed monthly, cancel anytime"}
+                  {currency === "INR"
+                    ? (billingCycle === "yearly" ? "Billed ₹12,990 annually" : "Billed monthly, cancel anytime")
+                    : (billingCycle === "yearly" ? "Billed $180 annually" : "Billed monthly, cancel anytime")}
                 </span>
               </div>
 
@@ -213,7 +264,7 @@ export default function PricingPage() {
                 onClick={() => handleOpenUpgrade("starter")}
                 className="w-full bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold h-11"
               >
-                Choose Starter
+                {currency === "INR" ? "Pay with UPI (GPay / PhonePe)" : "Choose Starter"}
               </Button>
             </CardContent>
           </Card>
@@ -245,12 +296,16 @@ export default function PricingPage() {
               <div className="my-6 pb-6 border-b border-zinc-800">
                 <div className="flex items-baseline">
                   <span className="text-4xl font-extrabold text-white">
-                    {billingCycle === "yearly" ? "$39" : "$49"}
+                    {currency === "INR"
+                      ? (billingCycle === "yearly" ? "₹2,915" : "₹3,499")
+                      : (billingCycle === "yearly" ? "$39" : "$49")}
                   </span>
                   <span className="text-xs text-zinc-400 ml-1">/ month</span>
                 </div>
                 <span className="text-[11px] text-emerald-400/80">
-                  {billingCycle === "yearly" ? "Billed $468 annually ($39/mo)" : "Billed monthly, cancel anytime"}
+                  {currency === "INR"
+                    ? (billingCycle === "yearly" ? "Billed ₹34,990 annually (₹2,915/mo)" : "Billed monthly, cancel anytime")
+                    : (billingCycle === "yearly" ? "Billed $468 annually ($39/mo)" : "Billed monthly, cancel anytime")}
                 </span>
               </div>
 
@@ -285,8 +340,15 @@ export default function PricingPage() {
                 onClick={() => handleOpenUpgrade("agency")}
                 className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs h-11 shadow-lg shadow-emerald-500/25"
               >
-                Get Agency Pro
-                <ArrowRight className="size-4 ml-1.5" />
+                {currency === "INR" ? (
+                  <span className="flex items-center gap-1.5">
+                    <QrCode className="size-4" /> Pay via UPI / QR (Instant)
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    Get Agency Pro <ArrowRight className="size-4" />
+                  </span>
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -302,7 +364,9 @@ export default function PricingPage() {
               Calculate Your Agency Profit with White-Label Audits
             </h2>
             <p className="text-xs text-muted-foreground mb-8">
-              Agencies typically bill clients between $150 and $500 for a detailed website technical & SEO audit report.
+              {currency === "INR"
+                ? "Agencies typically bill clients between ₹5,000 and ₹25,000 for a detailed website technical & SEO audit report."
+                : "Agencies typically bill clients between $150 and $500 for a detailed website technical & SEO audit report."}
             </p>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
@@ -326,13 +390,15 @@ export default function PricingPage() {
                 <div>
                   <div className="flex justify-between text-xs mb-2">
                     <span className="text-zinc-300">Fee Charged Per Audit to Client:</span>
-                    <span className="font-bold text-emerald-400">${auditFee} USD</span>
+                    <span className="font-bold text-emerald-400">
+                      {currency === "INR" ? `₹${auditFee.toLocaleString("en-IN")} INR` : `$${auditFee} USD`}
+                    </span>
                   </div>
                   <input
                     type="range"
-                    min="50"
-                    max="1000"
-                    step="25"
+                    min={currency === "INR" ? 2000 : 50}
+                    max={currency === "INR" ? 50000 : 1000}
+                    step={currency === "INR" ? 1000 : 25}
                     value={auditFee}
                     onChange={(e) => setAuditFee(Number(e.target.value))}
                     className="w-full accent-emerald-500 cursor-pointer"
@@ -343,13 +409,21 @@ export default function PricingPage() {
               {/* Profit Card */}
               <div className="p-6 rounded-xl bg-black/60 border border-emerald-500/40 text-center">
                 <div className="text-xs text-zinc-400 mb-1">Your Monthly Client Revenue</div>
-                <div className="text-3xl font-extrabold text-white mb-2">${monthlyRevenue.toLocaleString()}</div>
+                <div className="text-3xl font-extrabold text-white mb-2">
+                  {currency === "INR" ? `₹${monthlyRevenue.toLocaleString("en-IN")}` : `$${monthlyRevenue.toLocaleString()}`}
+                </div>
                 <div className="text-[11px] text-zinc-400">
-                  KODAND Agency Pro Cost: <span className="text-zinc-200 font-semibold">${kodandCost}/mo</span>
+                  KODAND Agency Pro Cost:{" "}
+                  <span className="text-zinc-200 font-semibold">
+                    {currency === "INR" ? `₹${kodandCost.toLocaleString("en-IN")}/mo` : `$${kodandCost}/mo`}
+                  </span>
                 </div>
                 <div className="mt-4 pt-4 border-t border-zinc-800">
                   <div className="text-xs text-emerald-400 font-bold">
-                    Net Profit: <span className="text-lg">${netProfit.toLocaleString()} / mo</span>
+                    Net Profit:{" "}
+                    <span className="text-lg">
+                      {currency === "INR" ? `₹${netProfit.toLocaleString("en-IN")}` : `$${netProfit.toLocaleString()}`} / mo
+                    </span>
                   </div>
                   <Badge className="mt-2 bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
                     {roiMultiplier}x Return on Investment
@@ -387,6 +461,13 @@ export default function PricingPage() {
         open={upgradeModalOpen}
         onOpenChange={setUpgradeModalOpen}
         defaultTier={selectedTier}
+      />
+
+      <UpiPaymentModal
+        open={upiModalOpen}
+        onOpenChange={setUpiModalOpen}
+        tier={selectedTier}
+        cycle={billingCycle}
       />
     </div>
   );

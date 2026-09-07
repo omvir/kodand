@@ -35,6 +35,7 @@ import {
   gradeFromScore,
   type DimensionPack,
 } from "@/lib/scanners";
+import { recordScanTelemetry } from "@/lib/admin-telemetry";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -234,6 +235,20 @@ export async function POST(req: Request) {
         };
 
         writeScanCache(url, mode, result);
+
+        try {
+          const country = request.headers.get("cf-ipcountry") || "IN";
+          recordScanTelemetry({
+            url,
+            mode,
+            score: digitalHealthScore,
+            grade,
+            durationMs: Date.now() - startTime,
+            country,
+          });
+        } catch {
+          // Non-blocking telemetry
+        }
 
         send({ type: "stage", stage: "finalize", label: "Report ready", progress: 100 });
         send({ type: "complete", result });
