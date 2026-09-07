@@ -87,8 +87,8 @@ export function UpiPaymentModal({
               0% Gateway Fees
             </Badge>
           </div>
-          <DialogDescription className="text-xs text-zinc-400">
-            Pay ₹{amount.toLocaleString("en-IN")} via PhonePe, Google Pay, Paytm, or CRED.
+          <DialogDescription className="text-xs text-zinc-300">
+            Pay ₹{amount.toLocaleString("en-IN")} directly to UPI ID: <strong className="text-emerald-400 font-mono">{upiId}</strong> via Google Pay, PhonePe, or Paytm.
           </DialogDescription>
         </DialogHeader>
 
@@ -117,27 +117,27 @@ export function UpiPaymentModal({
             </div>
 
             {/* Official UPI ID Banner */}
-            <div className="p-3 rounded-xl bg-zinc-900/90 border border-emerald-500/40 flex items-center justify-between gap-2">
+            <div className="p-3.5 rounded-xl bg-zinc-900/95 border-2 border-emerald-500/60 flex items-center justify-between gap-2 shadow-lg shadow-emerald-950/40">
               <div className="min-w-0">
-                <span className="text-[10px] text-zinc-400 block uppercase font-mono tracking-wider">Official UPI ID (VPA)</span>
-                <span className="font-mono font-bold text-xs sm:text-sm text-emerald-400 truncate block">
+                <span className="text-[10px] text-zinc-400 block uppercase font-mono tracking-wider font-bold">Official UPI ID (Pay To)</span>
+                <span className="font-mono font-extrabold text-xs sm:text-sm text-emerald-400 truncate block select-all">
                   {upiId}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleCopyUpi}
-                className="shrink-0 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1 transition-colors"
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold flex items-center gap-1 transition-all active:scale-95"
               >
-                {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3 text-emerald-400" />}
-                <span>{copied ? "Copied" : "Copy"}</span>
+                {copied ? <Check className="size-3 text-black" /> : <Copy className="size-3 text-black" />}
+                <span>{copied ? "Copied" : "Copy ID"}</span>
               </button>
             </div>
 
             {/* QR Code Container */}
-            <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-white text-black shadow-inner">
-              <div className="text-[11px] font-bold text-zinc-800 mb-2 flex items-center gap-1.5 font-mono uppercase tracking-wider">
-                <QrCode className="size-3.5" /> Scan to Pay with Google Pay / Any UPI App
+            <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-white text-black shadow-2xl border-2 border-emerald-500/40">
+              <div className="text-[11px] font-bold text-zinc-900 mb-2 flex items-center gap-1.5 font-mono uppercase tracking-wider">
+                <QrCode className="size-3.5 text-emerald-600" /> Google Pay / PhonePe QR Code
               </div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -145,10 +145,13 @@ export function UpiPaymentModal({
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = qrUrl;
                 }}
-                alt={`UPI Payment QR Code - ${upiId}`}
-                className="size-48 rounded-lg shadow-sm border border-zinc-200 object-contain"
+                alt={`Official Google Pay UPI QR Code - ${upiId}`}
+                className="size-48 sm:size-52 rounded-lg shadow-sm border border-zinc-200 object-contain"
               />
-              <div className="text-[10px] text-zinc-600 mt-2 font-mono flex items-center gap-2">
+              <div className="mt-2.5 px-3 py-1 rounded-md bg-zinc-100 border border-zinc-300 text-[11px] font-mono font-extrabold text-zinc-900 select-all">
+                {upiId}
+              </div>
+              <div className="text-[10px] text-zinc-600 mt-1 font-mono flex items-center gap-2">
                 <span>Google Pay</span> · <span>PhonePe</span> · <span>Paytm</span> · <span>BHIM</span>
               </div>
             </div>
@@ -169,7 +172,7 @@ export function UpiPaymentModal({
                 className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 text-xs font-semibold text-zinc-200 transition-colors"
               >
                 {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5 text-zinc-400" />}
-                <span>{copied ? "Copied UPI ID" : "Copy UPI ID"}</span>
+                <span className="truncate">{copied ? "Copied!" : `Copy ${upiId}`}</span>
               </button>
             </div>
 
