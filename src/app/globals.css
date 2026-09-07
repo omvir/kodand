@@ -1,0 +1,626 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* === OVERRIDE Tailwind's emerald palette with the KODAND deep forest-green
+   *    palette derived from the official logo. The logo's colors are:
+   *      base:       #2F4F3E  →  oklch(0.397 0.048 160)  (emerald-700)
+   *      highlight:  #4A6B54  →  oklch(0.495 0.053 154)  (emerald-500)
+   *      light hi:   #5C7D66  →  oklch(0.558 0.052 154)  (emerald-400)
+   *      shadow:     #1A2D21  →  oklch(0.277 0.033 156)  (emerald-800)
+   *    This way all existing `emerald-*` Tailwind classes in page.tsx
+   *    automatically use the logo's exact colors. ===
+   *
+   * Scale (light → dark):
+   *   50:  very pale forest tint   (background tints)
+   *   100: pale forest             (subtle backgrounds)
+   *   200: light forest            (borders on light)
+   *   300: light-medium forest     (text accents on dark)
+   *   400: #5C7D66 (logo light highlight)  ← borders/accents
+   *   500: #4A6B54 (logo highlight)        ← brand accent
+   *   600: #3e5b4b (user-spec primary)     ← primary brand
+   *   700: #2F4F3E (logo base)             ← deep forest
+   *   800: #1A2D21 (logo shadow)           ← darker
+   *   900: #162819 (logo deep shadow)      ← darkest
+   */
+  --color-emerald-50:  oklch(0.95 0.010 158);
+  --color-emerald-100: oklch(0.89 0.018 158);
+  --color-emerald-200: oklch(0.82 0.028 158);
+  --color-emerald-300: oklch(0.71 0.040 158);
+  --color-emerald-400: oklch(0.558 0.052 154);  /* #5C7D66 logo light highlight */
+  --color-emerald-500: oklch(0.495 0.053 154);  /* #4A6B54 logo highlight */
+  --color-emerald-600: oklch(0.443 0.043 160);  /* #3e5b4b user-spec primary */
+  --color-emerald-700: oklch(0.397 0.048 160);  /* #2F4F3E logo base */
+  --color-emerald-800: oklch(0.277 0.033 156);  /* #1A2D21 logo shadow */
+  --color-emerald-900: oklch(0.256 0.037 149);  /* #162819 logo deep shadow */
+
+  /* Also soften teal to match the sage palette (used by the "full" mode accent) */
+  --color-teal-50:  oklch(0.95 0.012 160);
+  --color-teal-100: oklch(0.89 0.02 160);
+  --color-teal-200: oklch(0.82 0.03 160);
+  --color-teal-300: oklch(0.71 0.04 160);
+  --color-teal-400: oklch(0.60 0.05 160);
+  --color-teal-500: oklch(0.50 0.045 160);
+  --color-teal-600: oklch(0.40 0.038 160);
+  --color-teal-700: oklch(0.32 0.03 160);
+  --color-teal-800: oklch(0.24 0.024 160);
+  --color-teal-900: oklch(0.18 0.02 160);
+
+  /* === Mute the mode-accent palettes (rose, sky, amber, violet) to
+   *    complement the sage-green theme. Each keeps its hue identity (so
+   *    modes remain visually distinguishable) but with lower saturation
+   *    for a cohesive, professional look. === */
+
+  /* Rose → muted terracotta/clay (security mode) */
+  --color-rose-300: oklch(0.72 0.06 25);
+  --color-rose-400: oklch(0.65 0.08 25);
+  --color-rose-500: oklch(0.58 0.10 25);
+  --color-rose-600: oklch(0.50 0.10 25);
+
+  /* Sky → muted slate-blue (seo mode) */
+  --color-sky-300: oklch(0.72 0.05 230);
+  --color-sky-400: oklch(0.65 0.07 230);
+  --color-sky-500: oklch(0.58 0.08 230);
+  --color-sky-600: oklch(0.50 0.08 230);
+
+  /* Amber → muted ochre (performance mode) */
+  --color-amber-300: oklch(0.75 0.06 75);
+  --color-amber-400: oklch(0.68 0.08 75);
+  --color-amber-500: oklch(0.60 0.10 75);
+  --color-amber-600: oklch(0.52 0.10 75);
+
+  /* Violet → muted mauve (accessibility mode) */
+  --color-violet-300: oklch(0.72 0.05 300);
+  --color-violet-400: oklch(0.65 0.07 300);
+  --color-violet-500: oklch(0.58 0.08 300);
+  --color-violet-600: oklch(0.50 0.08 300);
+}
+
+/* KODAND Sage-Green Theme - Light (rarely used; app defaults to dark) */
+:root {
+  --radius: 0.625rem;
+  /* Light sage-tinted background */
+  --background: oklch(0.97 0.012 152);
+  --foreground: oklch(0.22 0.035 155);
+  --card: oklch(0.99 0.008 152);
+  --card-foreground: oklch(0.22 0.035 155);
+  --popover: oklch(0.99 0.008 152);
+  --popover-foreground: oklch(0.22 0.035 155);
+  /* Sage primary (#3e5b4b family) */
+  --primary: oklch(0.45 0.05 155);
+  --primary-foreground: oklch(0.97 0.015 145);
+  --secondary: oklch(0.92 0.025 152);
+  --secondary-foreground: oklch(0.28 0.045 155);
+  --muted: oklch(0.94 0.02 152);
+  --muted-foreground: oklch(0.55 0.04 150);
+  --accent: oklch(0.88 0.04 152);
+  --accent-foreground: oklch(0.25 0.045 155);
+  --destructive: oklch(0.58 0.22 27);
+  --border: oklch(0.86 0.03 152);
+  --input: oklch(0.9 0.025 152);
+  --ring: oklch(0.45 0.05 155);
+  --chart-1: oklch(0.45 0.05 155);
+  --chart-2: oklch(0.55 0.055 160);
+  --chart-3: oklch(0.62 0.045 145);
+  --chart-4: oklch(0.4 0.06 175);
+  --chart-5: oklch(0.5 0.05 130);
+  --sidebar: oklch(0.96 0.012 152);
+  --sidebar-foreground: oklch(0.22 0.035 155);
+  --sidebar-primary: oklch(0.45 0.05 155);
+  --sidebar-primary-foreground: oklch(0.97 0.015 145);
+  --sidebar-accent: oklch(0.9 0.03 152);
+  --sidebar-accent-foreground: oklch(0.25 0.045 155);
+  --sidebar-border: oklch(0.86 0.03 152);
+  --sidebar-ring: oklch(0.45 0.05 155);
+
+  /* KODAND custom tokens — sage-green palette centered on #3e5b4b */
+  --kodand-sage: #3e5b4b;
+  --kodand-sage-light: #4a6b58;
+  --kodand-sage-lighter: #5a7d68;
+  --kodand-sage-dark: #2e4338;
+  --kodand-sage-darker: #1f2e26;
+  --kodand-cream: #e8efe9;
+  --kodand-cream-muted: #a8b8b0;
+  --kodand-gold: #d4af37;
+  --kodand-gold-dark: #8b6914;
+  /* Primary section background gradient (user-specified) */
+  --kodand-primary-gradient: linear-gradient(to right, #3e5b4b 0%, #3e5b4b 100%);
+}
+
+/* KODAND Deep Forest-Green Theme - Dark (DEFAULT — app runs in .dark)
+ * Palette derived from the official logo:
+ *   #2F4F3E (logo base)      → primary
+ *   #4A6B54 (logo highlight)  → accent / hover
+ *   #5C7D66 (logo light hi)   → bright accent / CTAs
+ *   #1A2D21 (logo shadow)     → page background
+ *   #162819 (logo deep shadow)→ darkest sections
+ *   #8A9A90 (logo inner detail silver) → muted borders
+ *   #e8efe9 (cream)           → foreground
+ */
+.dark {
+  /* Page background — the logo's deep shadow #1A2D21, slightly lifted so the
+   * logo's letter pixels read as elevated. */
+  --background: oklch(0.277 0.033 156);
+  --foreground: oklch(0.93 0.018 145);
+  /* Cards / elevated surfaces — the logo's mid-tone #2F4F3E family */
+  --card: oklch(0.32 0.035 158);
+  --card-foreground: oklch(0.93 0.018 145);
+  --popover: oklch(0.32 0.035 158);
+  --popover-foreground: oklch(0.93 0.018 145);
+  /* Primary — the logo's base #2F4F3E */
+  --primary: oklch(0.397 0.048 160);
+  --primary-foreground: oklch(0.95 0.02 145);
+  --secondary: oklch(0.36 0.038 158);
+  --secondary-foreground: oklch(0.93 0.018 145);
+  --muted: oklch(0.36 0.038 158);
+  --muted-foreground: oklch(0.70 0.030 152);
+  /* Accent — the logo's highlight #4A6B54 */
+  --accent: oklch(0.495 0.053 154);
+  --accent-foreground: oklch(0.97 0.02 145);
+  --destructive: oklch(0.65 0.20 25);
+  /* Borders — subtle, derived from the logo's inner-detail silver #8A9A90 */
+  --border: oklch(0.45 0.020 152 / 0.4);
+  --input: oklch(0.36 0.038 158);
+  --ring: oklch(0.558 0.052 154);  /* logo light highlight #5C7D66 */
+  /* Charts — deep forest-green family with a gold accent for highlights */
+  --chart-1: oklch(0.558 0.052 154);  /* #5C7D66 logo light highlight */
+  --chart-2: oklch(0.495 0.053 154);  /* #4A6B54 logo highlight */
+  --chart-3: oklch(0.397 0.048 160);  /* #2F4F3E logo base */
+  --chart-4: oklch(0.72 0.12 85);     /* gold accent */
+  --chart-5: oklch(0.277 0.033 156);  /* #1A2D21 logo shadow */
+  --sidebar: oklch(0.30 0.035 158);
+  --sidebar-foreground: oklch(0.93 0.018 145);
+  --sidebar-primary: oklch(0.397 0.048 160);  /* #2F4F3E */
+  --sidebar-primary-foreground: oklch(0.95 0.02 145);
+  --sidebar-accent: oklch(0.36 0.038 158);
+  --sidebar-accent-foreground: oklch(0.95 0.02 145);
+  --sidebar-border: oklch(0.45 0.020 152 / 0.4);
+  --sidebar-ring: oklch(0.558 0.052 154);  /* #5C7D66 */
+
+  /* KODAND custom tokens — deep forest-green palette from the logo */
+  --kodand-sage: #2f4f3e;            /* logo base */
+  --kodand-sage-light: #4a6b54;     /* logo highlight */
+  --kodand-sage-lighter: #5c7d66;   /* logo light highlight */
+  --kodand-sage-dark: #1a2d21;      /* logo shadow */
+  --kodand-sage-darker: #162819;    /* logo deep shadow */
+  --kodand-cream: #e8efe9;
+  --kodand-cream-muted: #8a9a90;    /* logo inner detail silver */
+  --kodand-gold: #d4af37;
+  --kodand-gold-dark: #8b6914;
+  /* Primary section background gradient — the user's specified #3e5b4b which
+   * is the brand's primary brand color, derived from the logo family. */
+  --kodand-primary-gradient: linear-gradient(to right, #3e5b4b 0%, #3e5b4b 100%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ========== KODAND: Primary section gradient utility ========== */
+/* Apply this class to primary sections (headers, banners, focused-mode
+ * headers, active scan cards, footer) to use the user's specified gradient. */
+.kodand-primary-section {
+  background: var(--kodand-primary-gradient);
+}
+
+/* ========== KODAND: Modern card (sage theme) ========== */
+.kodand-card-modern {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    0 4px 12px rgba(31, 46, 38, 0.24);
+}
+.kodand-card-modern.is-interactive {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kodand-card-modern.is-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.22),
+    0 8px 20px rgba(31, 46, 38, 0.32);
+}
+
+/* ========== KODAND: Modern button (sage theme) ========== */
+.kodand-btn-modern {
+  background: linear-gradient(to right, var(--kodand-sage-light), var(--kodand-sage));
+  color: var(--kodand-cream);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-md);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 3px rgba(31, 46, 38, 0.4);
+  transition: all 0.2s ease;
+}
+.kodand-btn-modern:hover {
+  background: linear-gradient(to right, var(--kodand-sage-lighter), var(--kodand-sage-light));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 2px 6px rgba(31, 46, 38, 0.5);
+}
+
+/* ========== KODAND: Shimmering Ruby Logo ========== */
+@keyframes kodand-ruby-shimmer {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  60%, 100% {
+    transform: translateX(220%) skewX(-20deg);
+  }
+}
+
+@keyframes kodand-ruby-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px oklch(0.7 0.22 150 / 0.55))
+            drop-shadow(0 0 14px oklch(0.72 0.21 152 / 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px oklch(0.78 0.24 152 / 0.85))
+            drop-shadow(0 0 28px oklch(0.72 0.21 152 / 0.55));
+  }
+}
+
+@keyframes kodand-ruby-facets {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+@keyframes kodand-text-glow {
+  0%, 100% {
+    text-shadow:
+      0 0 4px oklch(0.72 0.21 152 / 0.35),
+      0 0 12px oklch(0.72 0.21 152 / 0.18);
+  }
+  50% {
+    text-shadow:
+      0 0 8px oklch(0.78 0.24 152 / 0.55),
+      0 0 22px oklch(0.72 0.21 152 / 0.35),
+      0 0 38px oklch(0.6 0.19 150 / 0.2);
+  }
+}
+
+.kodand-logo-text {
+  animation: kodand-text-glow 2.4s ease-in-out infinite;
+}
+
+.kodand-ruby {
+  animation: kodand-ruby-pulse 2.4s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.kodand-ruby-facet {
+  animation: kodand-ruby-facets 2.4s ease-in-out infinite;
+}
+
+.kodand-ruby-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 100%
+  );
+  animation: kodand-ruby-shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ========== KODAND: Custom scrollbar (long lists) ========== */
+.kodand-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.kodand-scroll::-webkit-scrollbar-track {
+  background: oklch(0.29 0.028 155 / 0.4);
+  border-radius: 4px;
+}
+.kodand-scroll::-webkit-scrollbar-thumb {
+  background: oklch(0.45 0.04 155 / 0.7);
+  border-radius: 4px;
+}
+.kodand-scroll::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.045 155 / 0.9);
+}
+
+/* ========== KODAND: Background grid (subtle sage-tech feel) ========== */
+.kodand-bg-grid {
+  background-image:
+    linear-gradient(oklch(0.55 0.045 155 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.55 0.045 155 / 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ========== KODAND: Scan animation (radar sweep) ========== */
+@keyframes kodand-radar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.kodand-radar {
+  animation: kodand-radar 3.2s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes kodand-pulse-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.kodand-pulse-ring {
+  animation: kodand-pulse-ring 1.8s ease-out infinite;
+}
+
+/* ========== KODAND: Progress step states ========== */
+.kodand-step-active {
+  animation: kodand-ruby-pulse 1.6s ease-in-out infinite;
+}
+
+/* ========== KODAND: Ruby-letter shimmer sweep (continuous) ========== */
+@keyframes kodand-letter-shimmer {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+.kodand-letter-shine {
+  animation: kodand-letter-shimmer 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ========== KODAND: Radar visualizer (scan engagement) ========== */
+@keyframes kodand-radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.kodand-radar-sweep {
+  animation: kodand-radar-sweep 2.6s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes kodand-radar-ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+.kodand-radar-ring {
+  animation: kodand-radar-ring 2.4s ease-out infinite;
+  transform-origin: center;
+}
+
+@keyframes kodand-radar-ring-delayed {
+  0% { transform: scale(0.4); opacity: 0.9; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+.kodand-radar-ring-2 {
+  animation: kodand-radar-ring-delayed 2.4s ease-out 0.8s infinite;
+  transform-origin: center;
+}
+.kodand-radar-ring-3 {
+  animation: kodand-radar-ring-delayed 2.4s ease-out 1.6s infinite;
+  transform-origin: center;
+}
+
+/* Orbiting data tokens around the radar — different durations per token */
+@keyframes kodand-orbit {
+  from { transform: rotate(0deg) translateX(var(--orbit-r, 90px)) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(var(--orbit-r, 90px)) rotate(-360deg); }
+}
+.kodand-orbit {
+  animation: kodand-orbit var(--orbit-d, 12s) linear infinite;
+  transform-origin: center;
+}
+
+/* Data token "lit" state — when its dimension has been scanned */
+.kodand-token {
+  transition: all 0.4s ease;
+  filter: grayscale(0.8) opacity(0.45);
+}
+.kodand-token.lit {
+  filter: grayscale(0) opacity(1);
+  transform: scale(1.12);
+}
+
+/* Scanline sweep */
+@keyframes kodand-scanline {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 0.6; }
+  50%  { transform: translateY(0%); opacity: 0.4; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.kodand-scanline {
+  animation: kodand-scanline 3.2s ease-in-out infinite;
+}
+
+/* Progress bar shimmer (when scanning) */
+@keyframes kodand-bar-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.kodand-bar-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: kodand-bar-shimmer 1.6s linear infinite;
+}
+
+/* Mode accent — fade-in for the radar hub when scanning begins */
+@keyframes kodand-fade-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.kodand-fade-pulse {
+  animation: kodand-fade-pulse 1.4s ease-in-out infinite;
+}
+
+/* Floating glow blobs for hero ambiance */
+@keyframes kodand-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(8%, -6%) scale(1.08); }
+}
+.kodand-float {
+  animation: kodand-float 14s ease-in-out infinite;
+}
+.kodand-float-slow {
+  animation: kodand-float 22s ease-in-out infinite reverse;
+}
+
+/* Mode card hover lift */
+.kodand-mode-card {
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+.kodand-mode-card:hover {
+  transform: translateY(-2px);
+}
+.kodand-mode-card.selected {
+  transform: translateY(-1px);
+}
+
+/* ========== KODAND: Chatbot UI ========== */
+
+/* Message bubble entrance */
+@keyframes kodand-msg-in {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.kodand-msg-in {
+  animation: kodand-msg-in 0.32s ease-out both;
+}
+
+/* Typing indicator dots */
+@keyframes kodand-typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+.kodand-typing-dot {
+  animation: kodand-typing 1.2s ease-in-out infinite;
+}
+.kodand-typing-dot:nth-child(2) { animation-delay: 0.18s; }
+.kodand-typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+/* Streaming console character fade */
+@keyframes kodand-line-fade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.kodand-line-fade {
+  animation: kodand-line-fade 0.25s ease-out both;
+}
+
+/* Sidebar mode button */
+.kodand-side-mode {
+  transition: all 0.16s ease;
+}
+.kodand-side-mode:hover {
+  transform: translateX(2px);
+}
+
+/* Sidebar toggle for mobile */
+.kodand-sidebar-shift {
+  transition: transform 0.28s ease;
+}
+
+/* Smooth scroll for chat */
+.kodand-chat-scroll {
+  scroll-behavior: smooth;
+}
+.kodand-chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.kodand-chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kodand-chat-scroll::-webkit-scrollbar-thumb {
+  background: oklch(0.45 0.04 155 / 0.5);
+  border-radius: 4px;
+}
+
+/* Result card entrance — slight scale-in */
+@keyframes kodand-card-pop {
+  0% { opacity: 0; transform: scale(0.97) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.kodand-card-pop {
+  animation: kodand-card-pop 0.4s ease-out both;
+}
+
+/* CVE severity pill color helpers (used in chat security view) */
+.kodand-sev-critical, .kodand-sev-high { background: rgba(239,68,68,0.15); color: #fca5a5; border-color: rgba(239,68,68,0.4); }
+.kodand-sev-medium { background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.4); }
+.kodand-sev-low { background: rgba(56,189,248,0.15); color: #7dd3fc; border-color: rgba(56,189,248,0.4); }
+.kodand-sev-info { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+
+/* Suggestion chip hover */
+.kodand-chip {
+  transition: all 0.16s ease;
+}
+.kodand-chip:hover {
+  transform: translateY(-1px);
+  background: rgba(90, 125, 104, 0.18);
+  border-color: rgba(90, 125, 104, 0.45);
+}
