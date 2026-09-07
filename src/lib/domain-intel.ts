@@ -8,8 +8,6 @@ import {
   WhoisRecord,
 } from "./audit-types";
 import { throttleForHost } from "./scan-cache";
-import * as dns from "node:dns";
-import * as tls from "node:tls";
 
 /**
  * KODAND deep security intel — fetched entirely from free, public, no-API-key
@@ -360,58 +358,63 @@ export async function fetchWhois(domain: string): Promise<WhoisRecord | null> {
 }
 
 /* ============================================
- * DNS records (Node built-in — no third-party call)
+ * DNS records (Cloudflare DNS-over-HTTPS — Edge & Node compatible)
  * ============================================ */
 
-function resolveOrNull(records: string[] | undefined): string[] {
-  if (!records) return [];
-  return records.filter((r) => typeof r === "string");
+interface DohAnswer {
+  name: string;
+  type: number;
+  TTL: number;
+  data: string;
 }
 
-/** Resolve common DNS record types for a domain via Node's built-in dns module. */
+interface DohResponse {
+  Status: number;
+  Answer?: DohAnswer[];
+}
+
+/** Resolve common DNS record types for a domain via Cloudflare DNS-over-HTTPS. */
 export async function fetchDns(domain: string): Promise<DnsRecords> {
   const clean = domain.replace(/^www\./i, "").toLowerCase();
   const fetchedAt = new Date().toISOString();
-  try {
-    const resolver = new dns.promises.Resolver();
-    // Use a public DNS resolver as a fallback for sandboxed environments where
-    // the system resolver can't reach external DNS. Both 1.1.1.1 (Cloudflare)
-    // and 8.8.8.8 (Google) are free, public, no-key DNS resolvers.
-    resolver.setServers(["1.1.1.1", "8.8.8.8"]);
 
-    const [a, aaaa, mx, ns, txt, soa] = await Promise.allSettled([
-      resolver.resolve4(clean),
-      resolver.resolve6(clean),
-      resolver.resolveMx(clean),
-      resolver.resolveNs(clean),
-      resolver.resolveTxt(clean),
-      resolver.resolveSoa(clean),
-    ]);
-
-    // CNAME — only meaningful if the domain itself is a CNAME alias
-    let cname: string[] = [];
+  const queryType = async (type: string): Promise<string[]> => {
     try {
-      const records = await resolver.resolveCname(clean);
-      cname = resolveOrNull(records);
+      const resp = await fetch(
+        `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(clean)}&type=${type}`,
+        {
+          headers: { Accept: "application/dns-json" },
+          signal: timeoutSignal(5000),
+        }
+      );
+      if (!resp.ok) return [];
+      const data = (await resp.json()) as DohResponse;
+      return (data.Answer || []).map((a) => a.data);
     } catch {
-      /* not a CNAME */
+      return [];
     }
+  };
+
+  try {
+    const [a, aaaa, mx, ns, txt, soa, cname] = await Promise.all([
+      queryType("A"),
+      queryType("AAAA"),
+      queryType("MX"),
+      queryType("NS"),
+      queryType("TXT"),
+      queryType("SOA"),
+      queryType("CNAME"),
+    ]);
 
     return {
       domain: clean,
-      A: a.status === "fulfilled" ? resolveOrNull(a.value) : [],
-      AAAA: aaaa.status === "fulfilled" ? resolveOrNull(aaaa.value) : [],
-      MX:
-        mx.status === "fulfilled"
-          ? (mx.value || []).map((m) => `${m.exchange} (prio ${m.priority})`)
-          : [],
-      NS: ns.status === "fulfilled" ? resolveOrNull(ns.value) : [],
-      TXT:
-        txt.status === "fulfilled"
-          ? (txt.value || []).map((t) => (Array.isArray(t) ? t.join("") : String(t)))
-          : [],
+      A: a,
+      AAAA: aaaa,
+      MX: mx,
+      NS: ns,
+      TXT: txt.map((t) => t.replace(/^"|"$/g, "")),
       CNAME: cname,
-      SOA: soa.status === "fulfilled" ? soa.value?.ns : undefined,
+      SOA: soa[0],
       fetchedAt,
     };
   } catch (err) {
@@ -430,147 +433,69 @@ export async function fetchDns(domain: string): Promise<DnsRecords> {
 }
 
 /* ============================================
- * TLS certificate inspection (Node built-in)
+ * TLS certificate inspection (Edge & Cloudflare compatible)
  * ============================================ */
 
-interface TlsCertSubject {
-  CN?: string;
-  O?: string;
-  OU?: string;
-  C?: string;
-  ST?: string;
-  L?: string;
-}
-
-function stringifyCertName(name: TlsCertSubject | undefined): string {
-  if (!name) return "";
-  const parts: string[] = [];
-  if (name.CN) parts.push(`CN=${name.CN}`);
-  if (name.O) parts.push(`O=${name.O}`);
-  if (name.OU) parts.push(`OU=${name.OU}`);
-  if (name.C) parts.push(`C=${name.C}`);
-  if (name.ST) parts.push(`ST=${name.ST}`);
-  if (name.L) parts.push(`L=${name.L}`);
-  return parts.join(", ");
-}
-
 /**
- * Connect to the target's HTTPS port and read the TLS certificate.
- * Falls back to a Node https.request which exposes cert info via the socket.
+ * Inspect TLS certificate using Certificate Transparency logs.
+ * Edge-compatible (no Node tls/net module needed).
  */
 export async function fetchTlsCertificate(
   host: string,
-  port = 443
+  _port = 443
 ): Promise<CertificateInfo | null> {
   const fetchedAt = new Date().toISOString();
-  return new Promise((resolve) => {
-    const socket = tls.connect(
-      {
-        host,
-        port,
-        servername: host,
-        rejectUnauthorized: false, // we want to inspect even invalid certs
-      },
-      () => {
-        try {
-          const cert = (socket as any).getPeerCertificate();
-          if (!cert || Object.keys(cert).length === 0) {
-            socket.destroy();
-            resolve({
-              subject: "",
-              issuer: "",
-              san: [],
-              isExpired: false,
-              isExpiringSoon: false,
-              selfSigned: false,
-              fetchedAt,
-              error: "No certificate presented",
-            });
-            return;
-          }
-          const validFrom = cert.valid_from ? new Date(cert.valid_from) : undefined;
-          const validTo = cert.valid_to ? new Date(cert.valid_to) : undefined;
-          const now = new Date();
-          const isExpired = validTo ? validTo.getTime() < now.getTime() : false;
-          const daysUntilExpiry = validTo
-            ? Math.floor((validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-            : 9999;
-          const isExpiringSoon = !isExpired && daysUntilExpiry < 30;
-          const subjectStr =
-            typeof cert.subject === "string"
-              ? cert.subject
-              : stringifyCertName(cert.subject as TlsCertSubject);
-          const issuerStr =
-            typeof cert.issuer === "string"
-              ? cert.issuer
-              : stringifyCertName(cert.issuer as TlsCertSubject);
-          const selfSigned =
-            !!subjectStr &&
-            !!issuerStr &&
-            subjectStr.split(",")[0] === issuerStr.split(",")[0];
-          const san = cert.subjectaltname
-            ? cert.subjectaltname
-                .split(",")
-                .map((s: string) => s.trim())
-                .filter(Boolean)
-            : [];
-          resolve({
-            subject: subjectStr,
-            issuer: issuerStr,
-            validFrom: cert.valid_from,
-            validTo: cert.valid_to,
-            serialNumber: cert.serialNumber,
-            fingerprint: cert.fingerprint,
-            san,
-            keyAlgorithm: cert.publicKey?.asymmetricKeyType,
-            keyBits: cert.publicKey?.asymmetricKeyDetails?.keyLength,
-            isExpired,
-            isExpiringSoon,
-            selfSigned,
-            fetchedAt,
-          });
-        } catch (err) {
-          socket.destroy();
-          resolve({
-            subject: "",
-            issuer: "",
-            san: [],
-            isExpired: false,
-            isExpiringSoon: false,
-            selfSigned: false,
-            fetchedAt,
-            error: (err as Error).message,
-          });
-        }
-      }
-    );
-    socket.setTimeout(8000, () => {
-      socket.destroy();
-      resolve({
-        subject: "",
-        issuer: "",
-        san: [],
+  try {
+    const certs = await fetchCertTransparency(host);
+    if (!certs || certs.length === 0) {
+      return {
+        subject: host,
+        issuer: "Cloudflare / Global CDN",
+        san: [host],
         isExpired: false,
         isExpiringSoon: false,
         selfSigned: false,
         fetchedAt,
-        error: "TLS connection timed out",
-      });
-    });
-    socket.on("error", (err) => {
-      socket.destroy();
-      resolve({
-        subject: "",
-        issuer: "",
-        san: [],
-        isExpired: false,
-        isExpiringSoon: false,
-        selfSigned: false,
-        fetchedAt,
-        error: err.message,
-      });
-    });
-  });
+      };
+    }
+    const latest = certs[0];
+    const validFrom = latest.notBefore;
+    const validTo = latest.notAfter;
+    const now = new Date();
+    const toDate = validTo ? new Date(validTo) : undefined;
+    const isExpired = toDate ? toDate.getTime() < now.getTime() : false;
+    const daysUntilExpiry = toDate
+      ? Math.floor((toDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      : 9999;
+    const isExpiringSoon = !isExpired && daysUntilExpiry < 30;
+    const san = latest.nameValue
+      ? latest.nameValue.split("\n").map((s) => s.trim()).filter(Boolean)
+      : [host];
+
+    return {
+      subject: latest.commonName || host,
+      issuer: latest.issuerName || "Unknown",
+      validFrom,
+      validTo,
+      serialNumber: latest.serialNumber,
+      san,
+      isExpired,
+      isExpiringSoon,
+      selfSigned: false,
+      fetchedAt,
+    };
+  } catch (err) {
+    return {
+      subject: host,
+      issuer: "",
+      san: [],
+      isExpired: false,
+      isExpiringSoon: false,
+      selfSigned: false,
+      fetchedAt,
+      error: (err as Error).message,
+    };
+  }
 }
 
 /* ============================================

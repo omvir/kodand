@@ -25,7 +25,7 @@ import {
 import { readScanCache, writeScanCache } from "@/lib/scan-cache";
 import { computeContentMetrics } from "@/lib/content-metrics";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
