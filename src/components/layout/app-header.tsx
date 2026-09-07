@@ -4,9 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { KodandLogo } from "@/components/kodand-logo";
-import { Activity, Globe, KeyRound, Loader2, Share2, Sparkles, Target, Swords, Crown } from "lucide-react";
+import { Activity, Globe, KeyRound, Loader2, Share2, Sparkles, Target, Swords, Crown, User as UserIcon } from "lucide-react";
 import { prettyHost } from "@/components/dashboard/dashboard-types";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
+import { useAuth } from "@/lib/use-auth";
 
 export function AppHeader({
   domain,
@@ -23,6 +24,7 @@ export function AppHeader({
 }) {
   const pathname = usePathname();
   const [upgradeOpen, setUpgradeOpen] = React.useState(false);
+  const { user } = useAuth();
 
   const navLinks = [
     { href: "/", label: "Audit 360°", icon: Globe },
@@ -100,6 +102,31 @@ export function AppHeader({
             <Crown className="size-3 text-amber-400" />
             <span className="hidden sm:inline">Upgrade</span> Pro
           </button>
+
+          {user ? (
+            <Link
+              href="/account"
+              className="flex items-center gap-1.5 p-1 pl-1.5 pr-2.5 rounded-full bg-zinc-900/90 border border-zinc-700 hover:border-emerald-500/50 text-xs transition-all shadow-sm"
+            >
+              <div className="size-6 rounded-full bg-emerald-500/20 text-emerald-300 font-bold flex items-center justify-center text-[11px]">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:inline text-xs font-semibold text-zinc-200 truncate max-w-[90px]">
+                {user.name.split(" ")[0]}
+              </span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono uppercase">
+                {user.tier}
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-zinc-700 hover:border-zinc-500 text-xs font-semibold text-zinc-200 transition-colors"
+            >
+              <UserIcon className="size-3.5 text-zinc-400" />
+              <span>Sign In</span>
+            </Link>
+          )}
 
           {onToggleActivity && (
             <button

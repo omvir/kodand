@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/use-auth";
+import { SafeUser, SubscriptionTier } from "@/lib/auth-store";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppFooter } from "@/components/layout/app-footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { TelemetryOverview, ScanTelemetryEvent } from "@/lib/admin-telemetry";
+import { TelemetryOverview } from "@/lib/admin-telemetry";
 import {
   ShieldAlert,
   Activity,
@@ -20,39 +22,45 @@ import {
   Sparkles,
   Zap,
   TrendingUp,
-  Server,
   Layers,
-  ArrowUpRight,
   ShieldCheck,
+  Users,
+  UserCheck,
+  Building2,
+  Crown,
+  ChevronDown,
 } from "lucide-react";
 
 export default function AdminMonitoringPage() {
+  const { user: authUser } = useAuth();
   const [pin, setPin] = React.useState("");
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [authError, setAuthError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"users" | "telemetry">("users");
+
   const [stats, setStats] = React.useState<TelemetryOverview | null>(null);
+  const [users, setUsers] = React.useState<SafeUser[]>([]);
+  const [modifyingTierId, setModifyingTierId] = React.useState<string | null>(null);
 
-  // Check saved session PIN on load
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = sessionStorage.getItem("kodand_admin_pin");
-      if (saved) {
-        fetchStats(saved);
-      }
-    }
-  }, []);
-
-  const fetchStats = async (authPin: string) => {
+  const fetchAdminData = React.useCallback(async (authPin: string) => {
     setLoading(true);
     setAuthError(null);
     try {
-      const res = await fetch(`/api/admin/telemetry?pin=${encodeURIComponent(authPin)}`);
-      if (!res.ok) {
-        throw new Error("Invalid Admin PIN. Access denied.");
+      const [telemetryRes, usersRes] = await Promise.all([
+        fetch(`/api/admin/telemetry?pin=${encodeURIComponent(authPin)}`),
+        fetch(`/api/admin/users?pin=${encodeURIComponent(authPin)}`),
+      ]);
+
+      if (!telemetryRes.ok || !usersRes.ok) {
+        throw new Error("Invalid Admin credentials. Access denied.");
       }
-      const data = await res.json();
-      setStats(data.stats);
+
+      const telemetryData = await telemetryRes.json();
+      const usersData = await usersRes.json();
+
+      setStats(telemetryData.stats);
+      setUsers(usersData.users);
       setIsAuthenticated(true);
       if (typeof window !== "undefined") {
         sessionStorage.setItem("kodand_admin_pin", authPin);
@@ -63,12 +71,24 @@ export default function AdminMonitoringPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Auto-login if logged in user has role === 'admin' or has session PIN
+  React.useEffect(() => {
+    if (authUser?.role === "admin") {
+      fetchAdminData("kodand2026");
+    } else if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("kodand_admin_pin");
+      if (saved) {
+        fetchAdminData(saved);
+      }
+    }
+  }, [authUser, fetchAdminData]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pin.trim()) return;
-    fetchStats(pin.trim());
+    fetchAdminData(pin.trim());
   };
 
   const handleLogout = () => {
@@ -77,6 +97,28 @@ export default function AdminMonitoringPage() {
     }
     setIsAuthenticated(false);
     setPin("");
+  };
+
+  const handleUpdateTier = async (userId: string, newTier: SubscriptionTier) => {
+    const currentPin = sessionStorage.getItem("kodand_admin_pin") || "kodand2026";
+    setModifyingTierId(userId);
+    try {
+      const res = await fetch(`/api/admin/users?pin=${encodeURIComponent(currentPin)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, tier: newTier }),
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === userId ? { ...u, tier: newTier, maxScans: data.user.maxScans } : u))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to update tier", err);
+    } finally {
+      setModifyingTierId(null);
+    }
   };
 
   if (!isAuthenticated) {
@@ -91,7 +133,7 @@ export default function AdminMonitoringPage() {
               </div>
               <h1 className="text-xl font-bold text-white">Admin Control Center</h1>
               <p className="text-xs text-muted-foreground mt-1">
-                Enter your secure administrator PIN to monitor live users, audit streams, and edge telemetry.
+                Enter your administrator PIN to monitor all users, manage subscriptions, and inspect live scans.
               </p>
             </div>
 
@@ -132,6 +174,9 @@ export default function AdminMonitoringPage() {
     );
   }
 
+  const proCount = users.filter((u) => u.tier === "agency" || u.tier === "starter").length;
+  const freeCount = users.filter((u) => u.tier === "free").length;
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <AppHeader />
@@ -142,14 +187,14 @@ export default function AdminMonitoringPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px] font-mono uppercase">
-                Live Edge Telemetry
+                Admin Control Plane
               </Badge>
               <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" /> Live
+                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" /> Connected
               </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-              Platform User & Scan Telemetry
+              User Monitoring & Platform Administration
             </h1>
           </div>
 
@@ -158,8 +203,8 @@ export default function AdminMonitoringPage() {
               size="sm"
               variant="outline"
               onClick={() => {
-                const saved = sessionStorage.getItem("kodand_admin_pin");
-                if (saved) fetchStats(saved);
+                const saved = sessionStorage.getItem("kodand_admin_pin") || "kodand2026";
+                fetchAdminData(saved);
               }}
               disabled={loading}
               className="border-zinc-700 text-xs h-8"
@@ -178,64 +223,214 @@ export default function AdminMonitoringPage() {
           </div>
         </div>
 
-        {stats && (
-          <div className="space-y-8">
-            {/* KPI Metric Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
-                <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                  <span>Total Scans</span>
-                  <Activity className="size-4 text-emerald-400" />
-                </div>
-                <div className="text-2xl md:text-3xl font-extrabold text-white">
-                  {stats.totalScans.toLocaleString()}
-                </div>
-                <div className="text-[11px] text-emerald-400/80 flex items-center gap-1 mt-1">
-                  <TrendingUp className="size-3" /> Real-time edge aggregated
-                </div>
-              </Card>
+        {/* Global KPI Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+              <span>Total Registered Users</span>
+              <Users className="size-4 text-emerald-400" />
+            </div>
+            <div className="text-2xl md:text-3xl font-extrabold text-white">
+              {users.length}
+            </div>
+            <div className="text-[11px] text-zinc-400 mt-1">
+              {proCount} Paid Subscribers · {freeCount} Free
+            </div>
+          </Card>
 
-              <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
-                <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                  <span>Unique Domains</span>
-                  <Globe2 className="size-4 text-teal-400" />
-                </div>
-                <div className="text-2xl md:text-3xl font-extrabold text-white">
-                  {stats.uniqueDomains.toLocaleString()}
-                </div>
-                <div className="text-[11px] text-zinc-400 mt-1">
-                  Distinct websites scanned
-                </div>
-              </Card>
+          <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+              <span>Platform Scans</span>
+              <Activity className="size-4 text-teal-400" />
+            </div>
+            <div className="text-2xl md:text-3xl font-extrabold text-white">
+              {stats?.totalScans.toLocaleString() ?? "—"}
+            </div>
+            <div className="text-[11px] text-emerald-400/80 flex items-center gap-1 mt-1">
+              <TrendingUp className="size-3" /> Live edge aggregated
+            </div>
+          </Card>
 
-              <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
-                <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                  <span>Average Health Score</span>
-                  <ShieldCheck className="size-4 text-amber-400" />
-                </div>
-                <div className="text-2xl md:text-3xl font-extrabold text-white">
-                  {stats.averageScore} / 100
-                </div>
-                <div className="text-[11px] text-zinc-400 mt-1">
-                  Platform-wide average
-                </div>
-              </Card>
+          <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+              <span>Unique Domains Audited</span>
+              <Globe2 className="size-4 text-amber-400" />
+            </div>
+            <div className="text-2xl md:text-3xl font-extrabold text-white">
+              {stats?.uniqueDomains.toLocaleString() ?? "—"}
+            </div>
+            <div className="text-[11px] text-zinc-400 mt-1">
+              Distinct client targets
+            </div>
+          </Card>
 
-              <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
-                <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-                  <span>Edge Speed Avg</span>
-                  <Zap className="size-4 text-emerald-400" />
-                </div>
-                <div className="text-2xl md:text-3xl font-extrabold text-white">
-                  {stats.averageDurationMs} ms
-                </div>
-                <div className="text-[11px] text-emerald-400 mt-1">
-                  Cloudflare Edge Workers
-                </div>
-              </Card>
+          <Card className="border border-emerald-500/30 bg-zinc-950/70 p-4 rounded-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
+              <span>Cloudflare Edge Speed</span>
+              <Zap className="size-4 text-emerald-400" />
+            </div>
+            <div className="text-2xl md:text-3xl font-extrabold text-white">
+              {stats?.averageDurationMs ?? "—"} ms
+            </div>
+            <div className="text-[11px] text-emerald-400 mt-1">
+              Sub-second response
+            </div>
+          </Card>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-2 mb-6 border-b border-zinc-800 pb-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab("users")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === "users"
+                ? "bg-emerald-500 text-black shadow-md"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+            }`}
+          >
+            <Users className="size-4" />
+            <span>User Management & Accounts ({users.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("telemetry")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === "telemetry"
+                ? "bg-emerald-500 text-black shadow-md"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+            }`}
+          >
+            <Activity className="size-4" />
+            <span>Live Scan Telemetry & Traffic</span>
+          </button>
+        </div>
+
+        {/* TAB 1: USERS MONITORING */}
+        {activeTab === "users" && (
+          <Card className="border border-zinc-800 bg-zinc-950/60 p-6 rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <UserCheck className="size-4 text-emerald-400" /> Registered User Accounts
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Monitor user activity, scan consumption, and change subscription tiers in real time.
+                </p>
+              </div>
+              <Badge variant="outline" className="text-xs font-mono border-zinc-700">
+                {users.length} Total Users
+              </Badge>
             </div>
 
-            {/* Country & Mode Distribution */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-zinc-800 text-zinc-400 font-mono">
+                    <th className="pb-3">User</th>
+                    <th className="pb-3">Email & Company</th>
+                    <th className="pb-3">Current Plan</th>
+                    <th className="pb-3">Scans Used</th>
+                    <th className="pb-3">Last Active</th>
+                    <th className="pb-3 text-right">Change Tier</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-900">
+                  {users.map((u) => (
+                    <tr key={u.id} className="hover:bg-zinc-900/30 transition-colors">
+                      <td className="py-3 font-semibold text-white">
+                        <div className="flex items-center gap-2.5">
+                          <div className="size-7 rounded-full bg-emerald-500/20 text-emerald-300 font-bold flex items-center justify-center text-xs">
+                            {u.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div>{u.name}</div>
+                            {u.role === "admin" && (
+                              <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[9px] px-1 py-0">
+                                Administrator
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3 text-zinc-300">
+                        <div className="font-mono text-xs">{u.email}</div>
+                        {u.company && <div className="text-[11px] text-zinc-500">{u.company}</div>}
+                      </td>
+
+                      <td className="py-3">
+                        <Badge
+                          className={`text-[10px] font-mono uppercase ${
+                            u.tier === "agency"
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                              : u.tier === "starter"
+                              ? "bg-teal-500/20 text-teal-300 border-teal-500/40"
+                              : "bg-zinc-800 text-zinc-400"
+                          }`}
+                        >
+                          {u.tier === "agency" ? "Agency Pro" : u.tier === "starter" ? "Starter" : "Free"}
+                        </Badge>
+                      </td>
+
+                      <td className="py-3 font-mono">
+                        <span className="font-bold text-white">{u.scansUsed}</span>
+                        <span className="text-zinc-500"> / {u.maxScans}</span>
+                      </td>
+
+                      <td className="py-3 text-zinc-400 font-mono text-[11px]">
+                        {new Date(u.lastLoginAt).toLocaleDateString()} {new Date(u.lastLoginAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </td>
+
+                      <td className="py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {u.tier !== "agency" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUpdateTier(u.id, "agency")}
+                              disabled={modifyingTierId === u.id}
+                              className="h-7 text-[10px] border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-300 font-bold"
+                            >
+                              Set Agency Pro
+                            </Button>
+                          )}
+                          {u.tier !== "starter" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUpdateTier(u.id, "starter")}
+                              disabled={modifyingTierId === u.id}
+                              className="h-7 text-[10px] border-teal-500/40 hover:bg-teal-500/10 text-teal-300"
+                            >
+                              Set Starter
+                            </Button>
+                          )}
+                          {u.tier !== "free" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleUpdateTier(u.id, "free")}
+                              disabled={modifyingTierId === u.id}
+                              className="h-7 text-[10px] text-zinc-400 hover:text-rose-400"
+                            >
+                              Demote Free
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        {/* TAB 2: TELEMETRY & SCAN STREAM */}
+        {activeTab === "telemetry" && stats && (
+          <div className="space-y-8">
+            {/* Country & Mode Breakdown */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Traffic By Country */}
               <Card className="border border-zinc-800 bg-zinc-950/60 p-5 rounded-xl">
@@ -265,7 +460,7 @@ export default function AdminMonitoringPage() {
                 </div>
               </Card>
 
-              {/* Mode Breakdown */}
+              {/* Popular Dimensions */}
               <Card className="border border-zinc-800 bg-zinc-950/60 p-5 rounded-xl">
                 <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                   <Layers className="size-4 text-teal-400" />
@@ -296,7 +491,7 @@ export default function AdminMonitoringPage() {
             <Card className="border border-zinc-800 bg-zinc-950/60 p-5 rounded-xl">
               <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                 <Clock className="size-4 text-emerald-400" />
-                Live User Scan Activity Stream ({stats.recentEvents.length} events)
+                Live Global User Scan Activity Stream
               </h3>
 
               <div className="overflow-x-auto">

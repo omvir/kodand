@@ -402,6 +402,108 @@ async function runTestSuite() {
     recordResult("TC-UPI-01", "India UPI Payment Gateway & INR Currency Switcher", false, err.message);
   }
 
+  // TC-AUTH-01: User Registration
+  const testUserEmail = `test_${Date.now()}@example.com`;
+  let sessionToken = "";
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Automated Tester",
+        email: testUserEmail,
+        password: "securePassword123",
+        company: "Test Automation Corp",
+      }),
+    });
+    const data = await resp.json();
+    sessionToken = data.token;
+    const passed = resp.ok && data.user && data.user.email === testUserEmail;
+    recordResult(
+      "TC-AUTH-01",
+      "User Registration & Account Creation",
+      passed,
+      `Created: ${data?.user?.email}, Tier: ${data?.user?.tier}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-AUTH-01", "User Registration & Account Creation", false, err.message);
+  }
+
+  // TC-AUTH-02: User & Admin Login
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "admin@kodand.com",
+        password: "admin123",
+      }),
+    });
+    const data = await resp.json();
+    const passed = resp.ok && data.user && data.user.role === "admin";
+    recordResult(
+      "TC-AUTH-02",
+      "User & Admin Authentication Login",
+      passed,
+      `Authenticated Admin: ${data?.user?.email} (${data?.user?.role})`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-AUTH-02", "User & Admin Authentication Login", false, err.message);
+  }
+
+  // TC-AUTH-03: Authenticated User Profile Retrieval (/api/auth/me)
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${sessionToken}` },
+    });
+    const data = await resp.json();
+    const passed = resp.ok && data.authenticated && data.user?.email === testUserEmail;
+    recordResult(
+      "TC-AUTH-03",
+      "Authenticated Profile & Session Verification",
+      passed,
+      `Verified Profile: ${data?.user?.name} (${data?.user?.email})`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-AUTH-03", "Authenticated Profile & Session Verification", false, err.message);
+  }
+
+  // TC-ADMIN-USERS: Admin User Management & Tier Modification
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/admin/users?pin=kodand2026`);
+    const data = await resp.json();
+    const hasUsers = resp.ok && Array.isArray(data.users) && data.users.length >= 3;
+
+    // Test tier modification
+    let tierUpdated = false;
+    if (hasUsers && data.users[0]) {
+      const targetId = data.users[0].id;
+      const patchResp = await fetch(`${BASE_URL}/api/admin/users?pin=kodand2026`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: targetId, tier: "agency" }),
+      });
+      tierUpdated = patchResp.ok;
+    }
+
+    recordResult(
+      "TC-ADMIN-USERS",
+      "Admin User Monitoring & Subscription Tier Control",
+      hasUsers && tierUpdated,
+      `Total Users Monitored: ${data?.users?.length}, Tier Modification: ${tierUpdated ? "SUCCESS" : "FAIL"}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-ADMIN-USERS", "Admin User Monitoring & Subscription Tier Control", false, err.message);
+  }
+
   // Print Summary Table
   const total = results.length;
   const passedCount = results.filter((r) => r.passed).length;
