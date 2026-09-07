@@ -77,9 +77,9 @@
 | **TC-AUTH-01** | User Registration & Creation | Critical | POST `/api/auth/register` | Password hashing & token | Validates inputs, creates user with Web Crypto SHA-256 hash, issues JWT session. | **PASSED** |
 | **TC-AUTH-02** | User & Admin Login | Critical | POST `/api/auth/login` | Session token & cookies | Authenticates user or administrator, returns safe user payload and signed cookie. | **PASSED** |
 | **TC-AUTH-03** | Authenticated Profile Retrieval | High | GET `/api/auth/me` | Bearer & cookie token | Validates session token, returns user profile, tier, and connected devices. | **PASSED** |
-| **TC-AUTH-GOOGLE** | Google OAuth Social Sign-In | High | `/login` & `/signup` | "Continue with Google" button | Renders official Google button, triggers OAuth redirect or safe demo fallback. | **Pending** |
-| **TC-AUTH-PWD-CHG** | User Change Password | High | POST `/api/auth/change-password` | Current pass check & update | Verifies existing password, enforces 6+ chars, securely updates hash. | **Pending** |
-| **TC-AUTH-PWD-RST** | Password Reset & Forgot Password | Critical | `/forgot-password` & `/reset-password` | Token-based reset flow | Sends/generates 15-min secure token, verifies token, updates account password. | **Pending** |
+| **TC-AUTH-GOOGLE** | Google OAuth Social Sign-In | High | `/login` & `/signup` | "Continue with Google" button | Renders official Google button, triggers OAuth redirect or safe demo fallback. | **PASSED** |
+| **TC-AUTH-PWD-CHG** | User Change Password | High | POST `/api/auth/change-password` | Current pass check & update | Verifies existing password, enforces 6+ chars, securely updates hash. | **PASSED** |
+| **TC-AUTH-PWD-RST** | Password Reset & Forgot Password | Critical | `/forgot-password` & `/reset-password` | Token-based reset flow | Sends/generates 15-min secure token, verifies token, updates account password. | **PASSED** |
 
 ---
 
@@ -88,8 +88,8 @@
 | Test ID | Test Title | Priority | Scope | Verification Focus | Expected Result | Status |
 |---|---|---|---|---|---|---|
 | **TC-DEVICE-TELEMETRY** | Device Hardware Telemetry | Critical | POST `/api/auth/device` | Screen, OS, Browser, CPU, RAM | Captures resolution, DPR, CPU cores, RAM, touch, language, and timezone. | **PASSED** |
-| **TC-DEEP-HARDWARE** | Deep GPU & Hardware Probing | High | Client Telemetry Collector | WebGL GPU, Battery, AudioContext | Extracts GPU vendor/renderer, battery level, AudioContext hardware signature. | **Pending** |
-| **TC-SEC-TELEMETRY** | Security & Privacy Indicators | High | Client & Edge Collector | AdBlock, Incognito, WebRTC leak | Probes AdBlock presence, private browsing estimation, and DevTools detection. | **Pending** |
+| **TC-DEEP-HARDWARE** | Deep GPU & Hardware Probing | High | Client Telemetry Collector | WebGL GPU, Battery, AudioContext | Extracts GPU vendor/renderer, battery level, AudioContext hardware signature. | **PASSED** |
+| **TC-SEC-TELEMETRY** | Security & Privacy Indicators | High | Client & Edge Collector | AdBlock, Incognito, WebRTC leak | Probes AdBlock presence, private browsing estimation, and DevTools detection. | **PASSED** |
 
 ---
 
