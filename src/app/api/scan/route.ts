@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import ZAI from "z-ai-web-dev-sdk";
 import {
   AccessibilityDimension,
@@ -1836,7 +1835,7 @@ function buildTopPriorities(pack: DimensionPack): string[] {
  * Endpoint
  * ============================================ */
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   let body: { url?: string; mode?: ScanMode };
   try {
     body = await req.json();

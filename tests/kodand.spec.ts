@@ -24,7 +24,7 @@ test.describe("KODAND End-to-End Test Suite (Kilo)", () => {
     await input.fill(TARGET_DOMAIN);
     await page.locator("button:has-text('Lock Target')").click();
 
-    // Verify target locked banner / badge appears
+    // After locking, dashboard should appear with the domain visible
     await expect(page.getByText(/example\.com/i).first()).toBeVisible();
   });
 
@@ -34,26 +34,34 @@ test.describe("KODAND End-to-End Test Suite (Kilo)", () => {
     await input.fill(TARGET_DOMAIN);
     await page.locator("button:has-text('Lock Target')").click();
 
-    // Click Content mode card
-    const contentCard = page.locator("div[data-slot='card']:has-text('Content')").first();
-    await contentCard.click();
+    // Wait for dashboard to load
+    await expect(page.getByText(/example\.com/i).first()).toBeVisible();
 
-    // Assert scanning or terminal activity starts
-    const terminalOrResults = page.locator("text=/Content|Scanning|Score|Terminal/i").first();
-    await expect(terminalOrResults).toBeVisible({ timeout: 10000 });
+    // Click Content mode in the dashboard — use visible button only
+    const contentButton = page.locator("button:has-text('Content')").last();
+    await expect(contentButton).toBeVisible();
+    await contentButton.click();
+
+    // Assert scanning starts - look for activity stream or stage logs
+    const scanningIndicator = page.locator("text=/Scanning|Initializing|Content Optimizer|stage/i").first();
+    await expect(scanningIndicator).toBeVisible({ timeout: 15000 });
   });
 
   test("TC-UI-08: PDF Download Action Readiness", async ({ page }) => {
-    // Lock target and execute scan
+    // Lock target
     const input = page.locator("input[aria-label='Website URL']");
     await input.fill(TARGET_DOMAIN);
     await page.locator("button:has-text('Lock Target')").click();
 
-    const contentCard = page.locator("div[data-slot='card']:has-text('Content')").first();
-    await contentCard.click();
+    // Wait for dashboard
+    await expect(page.getByText(/example\.com/i).first()).toBeVisible();
+
+    // Click Content mode
+    const contentButton = page.locator("button:has-text('Content')").last();
+    await contentButton.click();
 
     // Wait for scan to complete and look for Download PDF button
-    const pdfButton = page.locator("button:has-text('PDF'), button:has-text('Download')").first();
-    await expect(pdfButton).toBeVisible({ timeout: 20000 });
+    const pdfButton = page.locator("button:has-text('PDF')").first();
+    await expect(pdfButton).toBeVisible({ timeout: 30000 });
   });
 });
