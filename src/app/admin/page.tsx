@@ -45,13 +45,15 @@ import {
   Info,
 } from "lucide-react";
 
+import { AdminMarketingPortal } from "@/components/admin/admin-marketing-portal";
+
 export default function AdminMonitoringPage() {
   const { user: authUser } = useAuth();
   const [pin, setPin] = React.useState("");
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [authError, setAuthError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<"users" | "telemetry">("users");
+  const [activeTab, setActiveTab] = React.useState<"users" | "telemetry" | "marketing">("users");
 
   const [stats, setStats] = React.useState<TelemetryOverview | null>(null);
   const [users, setUsers] = React.useState<SafeUser[]>([]);
@@ -410,6 +412,18 @@ export default function AdminMonitoringPage() {
               <Activity className="size-4" />
               <span>Global Scan Telemetry & Traffic</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("marketing")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "marketing"
+                  ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+              }`}
+            >
+              <Sparkles className="size-4 text-amber-300" />
+              <span>Marketing & Growth Engine</span>
+            </button>
           </div>
 
           {activeTab === "users" && (
@@ -742,6 +756,11 @@ export default function AdminMonitoringPage() {
               </div>
             </Card>
           </div>
+        )}
+
+        {/* TAB 3: MARKETING & SALES ENGINE */}
+        {activeTab === "marketing" && (
+          <AdminMarketingPortal />
         )}
       </main>
 

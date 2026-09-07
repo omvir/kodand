@@ -127,4 +127,21 @@
 | **TC-VIS-05** | Auth Pages with Google Button | High | `/login` & `/signup` | Official Google "G" logo button, OR divider | `05-login-page.png` & `06-signup-page.png` |
 | **TC-VIS-06** | Password Recovery Workflow | High | `/forgot-password` & `/reset-password` | Email submission card, token-based new password card | `07-forgot-password.png` & `08-reset-password.png` |
 | **TC-VIS-07** | Admin Control Center & Telemetry | Critical | `/admin` (PIN unlocked) | Real-time scan graphs, user device telemetry cards | `09-admin-control-center.png` |
+| **TC-VIS-08** | Admin Marketing Command Portal | Critical | `/admin/marketing` | Audience finder, tele-calling studio, competitor matrix | `10-marketing-portal.png` |
+
+---
+
+### Suite 10: Admin Marketing & Growth Intelligence Portal
+
+> **Target Route:** `/admin` (Marketing Tab) or `/admin/marketing`  
+> **Security:** Protected by PIN `kodand2026`  
+
+| Test ID | Test Title | Priority | Target Component | Verification Focus | Expected Result |
+|---|---|---|---|---|---|
+| **TC-MKT-PORTAL-01** | Marketing Command Authentication | Critical | `/admin/marketing` | PIN Gatekeeper | Rejects unauthorized access with error message, unlocks on PIN `kodand2026`. |
+| **TC-MKT-PORTAL-02** | Target Persona Discovery & Sizing | High | Tab: Target Audience Finder | 4 Persona profiles & ARR calculator | Filters by India vs Global; calculates MRR/ARR based on active agency count. |
+| **TC-MKT-PORTAL-03** | Tele-Calling Studio & Script Generator | Critical | Tab: Tele-Calling & Outreach | Live teleprompter & UPI integration | Replaces `[Founder Name]`, `[Agency Name]` dynamically; embeds `atomicpixel0911-1@okhdfcbank`. |
+| **TC-MKT-PORTAL-04** | Competitor 360° Benchmark & Battlecards | Critical | Tab: Competitor Comparison | Ahrefs, Semrush, GTmetrix, SecurityTrails | Displays full 8-column matrix and phone objection battlecard talking points. |
+| **TC-MKT-PORTAL-05** | Strategic SaaS Improvement Roadmap | High | Tab: Strategic Improvements | 5 prioritized product roadmap items | Categorized by Impact vs Effort with ROI and implementation guidance. |
+
 

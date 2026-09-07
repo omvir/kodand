@@ -149,4 +149,26 @@ test.describe("KODAND Visual & Browser Inspection Suite (Kilo / Playwright)", ()
     });
   });
 
+  test("TC-VIS-08: Admin Marketing Command Portal", async ({ page }) => {
+    await page.goto(`${BASE_URL}/admin/marketing`);
+    await page.waitForLoadState("networkidle");
+
+    // Enter admin PIN if prompted
+    const pinInput = page.locator("input[type='password'], input[placeholder*='PIN'], input[type='text']").first();
+    if (await pinInput.isVisible()) {
+      await pinInput.fill("kodand2026");
+      const submitBtn = page.locator("button:has-text('Unlock'), button[type='submit']").first();
+      await submitBtn.click();
+      await page.waitForTimeout(1000);
+    }
+
+    await expect(page.getByText(/KODAND SaaS Marketing|Target Audience Finder/i).first()).toBeVisible();
+
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, "10-marketing-portal.png"),
+      fullPage: true,
+    });
+  });
+
 });
+
