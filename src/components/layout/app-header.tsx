@@ -4,8 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { KodandLogo } from "@/components/kodand-logo";
-import { Activity, Globe, KeyRound, Loader2, Share2, Sparkles, Target } from "lucide-react";
+import { Activity, Globe, KeyRound, Loader2, Share2, Sparkles, Target, Swords, Crown } from "lucide-react";
 import { prettyHost } from "@/components/dashboard/dashboard-types";
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 
 export function AppHeader({
   domain,
@@ -21,12 +22,15 @@ export function AppHeader({
   activityOpen?: boolean;
 }) {
   const pathname = usePathname();
+  const [upgradeOpen, setUpgradeOpen] = React.useState(false);
 
   const navLinks = [
     { href: "/", label: "Audit 360°", icon: Globe },
     { href: "/keywords", label: "Keywords", icon: KeyRound },
     { href: "/marketing", label: "Marketing", icon: Sparkles },
     { href: "/backlinks", label: "Backlinks", icon: Share2 },
+    { href: "/compare", label: "Compare", icon: Swords },
+    { href: "/pricing", label: "Pricing", icon: Crown },
   ];
 
   return (
@@ -83,10 +87,20 @@ export function AppHeader({
 
         <div className="flex items-center gap-2">
           {scanning && (
-            <div className="flex items-center gap-1.5 text-xs text-emerald-300 font-mono">
+            <div className="flex items-center gap-1.5 text-xs text-emerald-300 font-mono mr-1">
               <Loader2 className="size-3.5 animate-spin" /> scanning
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={() => setUpgradeOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all shadow-sm shadow-emerald-500/10"
+          >
+            <Crown className="size-3 text-amber-400" />
+            <span className="hidden sm:inline">Upgrade</span> Pro
+          </button>
+
           {onToggleActivity && (
             <button
               type="button"
@@ -102,14 +116,14 @@ export function AppHeader({
 
       {/* Mobile nav and target row */}
       <div className="md:hidden px-3 pb-2 flex flex-col gap-2">
-        <div className="flex items-center justify-around gap-1 pt-1 border-t border-emerald-500/10">
+        <div className="flex items-center justify-around gap-1 pt-1 border-t border-emerald-500/10 overflow-x-auto">
           {navLinks.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors shrink-0 ${
                   active
                     ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
                     : "text-muted-foreground hover:text-emerald-200"
@@ -139,6 +153,12 @@ export function AppHeader({
           </div>
         )}
       </div>
+
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        defaultTier="agency"
+      />
     </header>
   );
 }

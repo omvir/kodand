@@ -43,6 +43,8 @@ import {
 } from "@/components/dashboard/scan-results-panel";
 import { DashboardSidebar } from "@/components/dashboard/scan-history-sidebar";
 import { LiveActivityStream } from "@/components/dashboard/live-activity-stream";
+import { WhiteLabelModal } from "@/components/dashboard/white-label-modal";
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 
 let logCounter = 0;
 function nextLogId() {
@@ -61,6 +63,16 @@ export default function Home() {
   const [completedScans, setCompletedScans] = React.useState<ScanResult[]>([]);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
   const [activityOpen, setActivityOpen] = React.useState(false);
+
+  // SaaS Export & Upgrade modals
+  const [exportModalOpen, setExportModalOpen] = React.useState(false);
+  const [exportResult, setExportResult] = React.useState<ScanResult | null>(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
+
+  const handleOpenExport = (res: ScanResult) => {
+    setExportResult(res);
+    setExportModalOpen(true);
+  };
 
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
@@ -333,7 +345,7 @@ export default function Home() {
             scanning={status === "scanning"}
             onRun={onPickMode}
             onReRun={onPickMode}
-            onDownload={downloadReportPdf}
+            onDownload={handleOpenExport}
             onClearCompleted={clearCompletedScans}
           />
 
@@ -344,6 +356,7 @@ export default function Home() {
                 scans={completedScans}
                 onReRun={onPickMode}
                 onClear={clearCompletedScans}
+                onDownload={handleOpenExport}
               />
             </div>
           )}
@@ -384,6 +397,23 @@ export default function Home() {
       </AnimatePresence>
 
       <AppFooter />
+
+      <WhiteLabelModal
+        open={exportModalOpen}
+        onOpenChange={setExportModalOpen}
+        result={exportResult}
+        onOpenUpgradeModal={() => {
+          setExportModalOpen(false);
+          setUpgradeModalOpen(true);
+        }}
+      />
+
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        defaultTier="agency"
+        sourceFeature="White-Label Client Reports"
+      />
     </div>
   );
 }

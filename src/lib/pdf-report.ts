@@ -7,6 +7,13 @@ import {
   Severity,
 } from "@/lib/audit-types";
 
+export interface WhiteLabelOptions {
+  agencyName?: string;
+  agencyTagline?: string;
+  agencyWebsite?: string;
+  hideWatermark?: boolean;
+}
+
 /* ============================================================
  * KODAND — Ultra Pro Max PDF Report Generator
  * ------------------------------------------------------------
@@ -343,7 +350,7 @@ function modeSubtitle(mode: string): string {
   }
 }
 
-function drawCover(doc: jsPDF, result: ScanResult) {
+function drawCover(doc: jsPDF, result: ScanResult, whiteLabel?: WhiteLabelOptions) {
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
 
@@ -369,17 +376,30 @@ function drawCover(doc: jsPDF, result: ScanResult) {
   setFill(doc, GREEN.primary);
   doc.rect(0, H - 4, W, 4, "F");
 
-  // === KODAND wordmark ===
-  drawKodandWordmark(doc, 22, 38, 32, true);
+  // === Header Branding: Agency Name or KODAND wordmark ===
+  if (whiteLabel?.agencyName) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    setText(doc, GREEN.goldLight);
+    doc.text(whiteLabel.agencyName.toUpperCase(), 22, 38);
+    if (whiteLabel.agencyTagline || whiteLabel.agencyWebsite) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      setText(doc, [167, 243, 208]);
+      doc.text(whiteLabel.agencyTagline || whiteLabel.agencyWebsite || "", 22, 44);
+    }
+  } else {
+    drawKodandWordmark(doc, 22, 38, 32, true);
+  }
   // Thin gold line under the wordmark
   setStroke(doc, GREEN.gold);
   doc.setLineWidth(0.4);
-  doc.line(22, 44, W - 22, 44);
+  doc.line(22, 48, W - 22, 48);
   // Tagline
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   setText(doc, [110, 231, 183]);
-  doc.text("CONFIDENTIAL  ·  360° WEBSITE AUDIT REPORT", 22, 50);
+  doc.text("CONFIDENTIAL  ·  360° WEBSITE AUDIT REPORT", 22, 54);
 
   // === Mode label (large) ===
   doc.setFont("helvetica", "bold");
@@ -491,20 +511,20 @@ function drawCover(doc: jsPDF, result: ScanResult) {
     "KODAND is polite to target sites (1 req/800ms per host, cache 5 min).",
     22, bottomY + 3
   );
-  // Right column — privacy reminder
+  // Right column — privacy / attribution
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   setText(doc, GREEN.goldLight);
-  doc.text("KODAND", W - 22, bottomY - 7, { align: "right" });
+  doc.text(whiteLabel?.agencyName ? `PREPARED BY ${whiteLabel.agencyName.toUpperCase()}` : "KODAND", W - 22, bottomY - 7, { align: "right" });
   doc.setFont("helvetica", "italic");
   doc.setFontSize(6.8);
   setText(doc, [148, 163, 184]);
   doc.text(
-    "Your data stays in your browser.",
+    whiteLabel?.agencyWebsite ? whiteLabel.agencyWebsite : "Your data stays in your browser.",
     W - 22, bottomY - 2, { align: "right" }
   );
   doc.text(
-    "Save this PDF — your scan history clears when you close the browser.",
+    "Confidential client audit deliverable.",
     W - 22, bottomY + 3, { align: "right" }
   );
 }
@@ -512,15 +532,22 @@ function drawCover(doc: jsPDF, result: ScanResult) {
 /* ---------- 5. PAGE HEADER & FOOTER ---------- */
 
 /** Sticky page header — emerald strip with gold underline, KODAND badge, section title, page N. */
-function drawPageHeader(doc: jsPDF, sectionTitle: string) {
+function drawPageHeader(doc: jsPDF, sectionTitle: string, whiteLabel?: WhiteLabelOptions) {
   const W = doc.internal.pageSize.getWidth();
   setFill(doc, GREEN.forest);
   doc.rect(0, 0, W, PAGE.headerHeight, "F");
   // Gold accent line below the header
   setFill(doc, GREEN.gold);
   doc.rect(0, PAGE.headerHeight, W, 0.6, "F");
-  // Left: KODAND badge
-  drawKodandBadge(doc, PAGE.margin, 6);
+  // Left: KODAND badge or Agency Name
+  if (whiteLabel?.agencyName) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    setText(doc, GREEN.goldLight);
+    doc.text(whiteLabel.agencyName.toUpperCase(), PAGE.margin, 12);
+  } else {
+    drawKodandBadge(doc, PAGE.margin, 6);
+  }
   // Center: section title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
@@ -538,19 +565,22 @@ function drawPageHeader(doc: jsPDF, sectionTitle: string) {
  * block, so we skip page 1). Centered "KODAND · mode · Page N of M" with
  * the privacy note in small italic above it.
  */
-function drawPageFooters(doc: jsPDF, modeLabel: string) {
+function drawPageFooters(doc: jsPDF, modeLabel: string, whiteLabel?: WhiteLabelOptions) {
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const N = doc.getNumberOfPages();
+  const brandName = whiteLabel?.agencyName || "KODAND";
   for (let i = 2; i <= N; i++) {
     doc.setPage(i);
     const yFooter = H - 6;
-    // Privacy note (italic, small, centered)
+    // Note (italic, small, centered)
     doc.setFont("helvetica", "italic");
     doc.setFontSize(6.8);
     setText(doc, GREEN.muted);
     doc.text(
-      "Your data stays in your browser.  Save this PDF — your scan history clears when you close the browser.",
+      whiteLabel?.agencyWebsite
+        ? `Deliverable prepared by ${brandName} · ${whiteLabel.agencyWebsite}`
+        : "Your data stays in your browser. Save this PDF — your scan history clears when you close the browser.",
       W / 2, yFooter - 4,
       { align: "center" }
     );
@@ -559,7 +589,7 @@ function drawPageFooters(doc: jsPDF, modeLabel: string) {
     doc.setFontSize(7.8);
     setText(doc, GREEN.deep);
     doc.text(
-      `KODAND  ·  ${modeLabel}  ·  Page ${i} of ${N}`,
+      `${brandName}  ·  ${modeLabel}  ·  Page ${i} of ${N}`,
       W / 2, yFooter,
       { align: "center" }
     );
@@ -2057,15 +2087,15 @@ function renderTopPriorities(
 
 /* ---------- 19. MAIN ORCHESTRATOR ---------- */
 
-export function generateReportPdf(result: ScanResult): Blob {
+export function generateReportPdf(result: ScanResult, whiteLabel?: WhiteLabelOptions): Blob {
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: false });
 
   // ============ PAGE 1 — COVER ============
-  drawCover(doc, result);
+  drawCover(doc, result, whiteLabel);
 
   // ============ PAGE 2 — Overview ============
   doc.addPage();
-  drawPageHeader(doc, "Overview");
+  drawPageHeader(doc, "Overview", whiteLabel);
   let y = PAGE.topStart;
   const counter = { n: 0 };
 
@@ -2101,7 +2131,7 @@ export function generateReportPdf(result: ScanResult): Blob {
   // Section 2 — Score Breakdown
   if (needsBreak(doc, y, 50)) {
     doc.addPage();
-    drawPageHeader(doc, "Overview");
+    drawPageHeader(doc, "Overview", whiteLabel);
     y = PAGE.topStart;
   }
   y = renderScoreBreakdown(doc, y, result);
@@ -2109,7 +2139,7 @@ export function generateReportPdf(result: ScanResult): Blob {
   // Section 3 — Top Priorities
   if (needsBreak(doc, y, 40)) {
     doc.addPage();
-    drawPageHeader(doc, "Overview");
+    drawPageHeader(doc, "Overview", whiteLabel);
     y = PAGE.topStart;
   }
   y = renderTopPriorities(doc, y, result);
@@ -2117,13 +2147,13 @@ export function generateReportPdf(result: ScanResult): Blob {
   // ============ DIMENSION PAGES (one per dimension present) ============
   if (result.content || result.grammar) {
     doc.addPage();
-    drawPageHeader(doc, "Content & Clarity");
+    drawPageHeader(doc, "Content & Clarity", whiteLabel);
     y = PAGE.topStart;
     y = renderContentSection(doc, y, result, counter);
   }
   if (result.security) {
     doc.addPage();
-    drawPageHeader(doc, "Security & Privacy");
+    drawPageHeader(doc, "Security & Privacy", whiteLabel);
     y = PAGE.topStart;
     y = renderSecuritySection(doc, y, result, counter);
     if (result.security.intel) {
@@ -2132,56 +2162,58 @@ export function generateReportPdf(result: ScanResult): Blob {
   }
   if (result.seo) {
     doc.addPage();
-    drawPageHeader(doc, "SEO & Discoverability");
+    drawPageHeader(doc, "SEO & Discoverability", whiteLabel);
     y = PAGE.topStart;
     y = renderSeoSection(doc, y, result, counter);
   }
   if (result.performance) {
     doc.addPage();
-    drawPageHeader(doc, "Performance & Speed");
+    drawPageHeader(doc, "Performance & Speed", whiteLabel);
     y = PAGE.topStart;
     y = renderPerformanceSection(doc, y, result, counter);
   }
   if (result.accessibility) {
     doc.addPage();
-    drawPageHeader(doc, "Accessibility");
+    drawPageHeader(doc, "Accessibility", whiteLabel);
     y = PAGE.topStart;
     y = renderAccessibilitySection(doc, y, result, counter);
   }
 
   // ============ LAST PAGE — Fixes & Methodology ============
   doc.addPage();
-  drawPageHeader(doc, "Fixes & Methodology");
+  drawPageHeader(doc, "Fixes & Methodology", whiteLabel);
   y = PAGE.topStart;
   y = renderConsolidatedFixes(doc, y, result, counter);
   y = renderMethodology(doc, y, result, counter);
 
   // ============ FOOTER OVERLAY (every interior page) ============
-  drawPageFooters(doc, result.modeLabel);
+  drawPageFooters(doc, result.modeLabel, whiteLabel);
 
   // ============ METADATA ============
+  const brandName = whiteLabel?.agencyName || "KODAND";
   doc.setProperties({
-    title: `KODAND ${result.modeLabel} Report — ${result.meta.finalUrl || result.url}`,
+    title: `${brandName} ${result.modeLabel} Report — ${result.meta.finalUrl || result.url}`,
     subject: `${result.modeLabel} audit report`,
-    author: "KODAND",
-    creator: "KODAND",
-    keywords: `KODAND, ${result.modeLabel}, audit, report, website`,
+    author: brandName,
+    creator: brandName,
+    keywords: `${brandName}, ${result.modeLabel}, audit, report, website`,
   });
 
   return doc.output("blob");
 }
 
-export function downloadReportPdf(result: ScanResult) {
-  const blob = generateReportPdf(result);
+export function downloadReportPdf(result: ScanResult, whiteLabel?: WhiteLabelOptions) {
+  const blob = generateReportPdf(result, whiteLabel);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   const modeSlug = result.mode === "full" ? "360-Audit" : result.mode;
+  const brandPrefix = whiteLabel?.agencyName ? whiteLabel.agencyName.replace(/[^a-zA-Z0-9]/g, "_") : "KODAND";
   const safeUrlPart = (result.meta.finalUrl || result.url)
     .replace(/^https?:\/\//, "")
     .replace(/[^a-zA-Z0-9.-]/g, "_")
     .slice(0, 60);
-  a.download = `KODAND-${modeSlug}-${safeUrlPart}-${new Date()
+  a.download = `${brandPrefix}-${modeSlug}-${safeUrlPart}-${new Date()
     .toISOString()
     .slice(0, 10)}.pdf`;
   document.body.appendChild(a);

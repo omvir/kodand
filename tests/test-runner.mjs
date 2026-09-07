@@ -318,6 +318,40 @@ async function runTestSuite() {
     recordResult("TC-MKT-03", "Backlink Profile & Link Diversity Check", false, err.message);
   }
 
+  // TC-SAAS-01: Pricing Route Verification
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/pricing`);
+    const html = await resp.text();
+    const passed = resp.ok && html.includes("Agency Pro") && html.includes("White-Label");
+    recordResult(
+      "TC-SAAS-01",
+      "SaaS Pricing Page & Subscription Tiers Check",
+      passed,
+      `HTTP ${resp.status}, contains Agency Pro & White-Label tiers`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-SAAS-01", "SaaS Pricing Page & Subscription Tiers Check", false, err.message);
+  }
+
+  // TC-SAAS-02: Competitor Compare Route Verification
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/compare`);
+    const html = await resp.text();
+    const passed = resp.ok && html.includes("Competitor");
+    recordResult(
+      "TC-SAAS-02",
+      "Competitor Side-by-Side Audit Page Check",
+      passed,
+      `HTTP ${resp.status}, loaded competitor audit workspace`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-SAAS-02", "Competitor Side-by-Side Audit Page Check", false, err.message);
+  }
+
   // Print Summary Table
   const total = results.length;
   const passedCount = results.filter((r) => r.passed).length;

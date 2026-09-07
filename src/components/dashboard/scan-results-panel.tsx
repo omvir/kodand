@@ -47,11 +47,13 @@ export function CompletedScanCard({
   onReRun,
   index = 0,
   defaultOpen = false,
+  onDownload,
 }: {
   result: ScanResult;
   onReRun: (mode: ScanMode) => void;
   index?: number;
   defaultOpen?: boolean;
+  onDownload?: (result: ScanResult) => void;
 }) {
   const accent = MODE_ACCENT[result.mode];
   const Icon = MODE_ICON[result.mode];
@@ -142,7 +144,7 @@ export function CompletedScanCard({
               size="sm"
               variant="default"
               className="flex-1 h-8 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white"
-              onClick={() => downloadReportPdf(result)}
+              onClick={() => onDownload ? onDownload(result) : downloadReportPdf(result)}
             >
               <Download className="size-3.5 mr-1.5" /> PDF
             </Button>
@@ -200,10 +202,12 @@ export function CompletedScansGrid({
   scans,
   onReRun,
   onClear,
+  onDownload,
 }: {
   scans: ScanResult[];
   onReRun: (mode: ScanMode) => void;
   onClear: () => void;
+  onDownload?: (result: ScanResult) => void;
 }) {
   if (scans.length === 0) {
     return (
@@ -239,7 +243,13 @@ export function CompletedScansGrid({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
         <AnimatePresence initial={false}>
           {scans.map((s, i) => (
-            <CompletedScanCard key={s.id} result={s} onReRun={onReRun} index={i} />
+            <CompletedScanCard
+              key={s.id}
+              result={s}
+              onReRun={onReRun}
+              index={i}
+              onDownload={onDownload}
+            />
           ))}
         </AnimatePresence>
       </div>
