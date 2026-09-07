@@ -28,7 +28,12 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "KODAND" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/kodand-logo.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/kodand-logo.png",
   },
   openGraph: {
     title: "KODAND - 360° Website Audit",
