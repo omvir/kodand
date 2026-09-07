@@ -504,6 +504,78 @@ async function runTestSuite() {
     recordResult("TC-ADMIN-USERS", "Admin User Monitoring & Subscription Tier Control", false, err.message);
   }
 
+  // TC-DEVICE-TELEMETRY: Comprehensive Device & Hardware Telemetry Collection
+  try {
+    const t0 = Date.now();
+    const devResp = await fetch(`${BASE_URL}/api/auth/device`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        deviceSpecs: {
+          deviceName: "Google Chrome on Windows 11 (Desktop)",
+          browser: "Google Chrome",
+          os: "Windows 10/11",
+          deviceType: "desktop",
+          screenResolution: "2560x1440 (1.0x DPR)",
+          colorDepth: "24-bit",
+          touchSupport: false,
+          language: "en-US",
+          timeZone: "Asia/Kolkata",
+          hardwareConcurrency: 16,
+          deviceMemory: "32 GB RAM",
+          connectionType: "fiber",
+        },
+      }),
+    });
+    const devData = await devResp.json();
+    const passed = devResp.ok && devData.success && devData.device?.deviceName?.includes("Chrome");
+    recordResult(
+      "TC-DEVICE-TELEMETRY",
+      "Comprehensive Device Telemetry & Hardware Fingerprinting",
+      passed,
+      `Registered Device: ${devData?.device?.deviceName}, Resolution: ${devData?.device?.screenResolution}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-DEVICE-TELEMETRY", "Comprehensive Device Telemetry & Hardware Fingerprinting", false, err.message);
+  }
+
+  // TC-ADMIN-EXPORT: Admin Export Data (CSV & JSON for Users and Devices)
+  try {
+    const t0 = Date.now();
+    const [usersCsvResp, devicesCsvResp, jsonResp] = await Promise.all([
+      fetch(`${BASE_URL}/api/admin/export?pin=kodand2026&type=users&format=csv`),
+      fetch(`${BASE_URL}/api/admin/export?pin=kodand2026&type=devices&format=csv`),
+      fetch(`${BASE_URL}/api/admin/export?pin=kodand2026&format=json`),
+    ]);
+
+    const usersCsvText = await usersCsvResp.text();
+    const devicesCsvText = await devicesCsvResp.text();
+    const jsonData = await jsonResp.json();
+
+    const passed =
+      usersCsvResp.ok &&
+      usersCsvText.includes("Email Address") &&
+      devicesCsvResp.ok &&
+      devicesCsvText.includes("Device ID") &&
+      devicesCsvText.includes("Operating System") &&
+      jsonResp.ok &&
+      Array.isArray(jsonData.users);
+
+    recordResult(
+      "TC-ADMIN-EXPORT",
+      "Admin Complete Data Export (CSV & JSON Users/Devices)",
+      passed,
+      `Users CSV lines: ${usersCsvText.split("\n").length}, Devices CSV lines: ${devicesCsvText.split("\n").length}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-ADMIN-EXPORT", "Admin Complete Data Export (CSV & JSON Users/Devices)", false, err.message);
+  }
+
   // Print Summary Table
   const total = results.length;
   const passedCount = results.filter((r) => r.passed).length;

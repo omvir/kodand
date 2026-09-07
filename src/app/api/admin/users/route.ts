@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllUsers, updateUserTier, verifySessionToken } from "@/lib/auth-store";
+import {
+  getAllUsers,
+  getUserById,
+  updateUserTier,
+  updateUserStatus,
+  verifySessionToken,
+} from "@/lib/auth-store";
 
 export const runtime = "edge";
 
@@ -26,10 +32,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized. Admin privileges required." }, { status: 401 });
   }
 
+  const userId = req.nextUrl.searchParams.get("userId");
+  if (userId) {
+    const user = getUserById(userId);
+    if (!user) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, user });
+  }
+
   const users = getAllUsers();
+  const totalDevicesTracked = users.reduce((acc, u) => acc + (u.devices?.length || 0), 0);
+  const totalUserScans = users.reduce((acc, u) => acc + (u.scansUsed || 0), 0);
+
   return NextResponse.json({
     success: true,
     total: users.length,
+    totalDevicesTracked,
+    totalUserScans,
     users,
   });
 }
@@ -41,12 +61,19 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { userId, tier } = body;
-    if (!userId || !tier) {
-      return NextResponse.json({ error: "userId and tier are required." }, { status: 400 });
+    const { userId, tier, status } = body;
+    if (!userId) {
+      return NextResponse.json({ error: "userId is required." }, { status: 400 });
     }
 
-    const updatedUser = updateUserTier(userId, tier);
+    let updatedUser;
+    if (tier) {
+      updatedUser = updateUserTier(userId, tier);
+    }
+    if (status) {
+      updatedUser = updateUserStatus(userId, status);
+    }
+
     return NextResponse.json({
       success: true,
       user: updatedUser,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { registerUser, createSessionToken } from "@/lib/auth-store";
+import { parseEdgeClientInfo } from "@/lib/device-telemetry";
 
 export const runtime = "edge";
 
@@ -20,12 +21,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Merge client-sent specs with Cloudflare Edge headers
+    const edgeInfo = parseEdgeClientInfo(req.headers);
+    const clientSpecs = body.deviceSpecs || {};
+    const telemetry = {
+      ...edgeInfo,
+      ...clientSpecs,
+      ip: edgeInfo.ip || clientSpecs.ip,
+      country: edgeInfo.country || clientSpecs.country,
+      city: edgeInfo.city || clientSpecs.city,
+    };
+
     const user = await registerUser({
       name: body.name,
       email: body.email,
       password: body.password,
       company: body.company,
+      phone: body.phone,
       tier: body.tier || "free",
+      telemetry,
     });
 
     const token = createSessionToken(user);

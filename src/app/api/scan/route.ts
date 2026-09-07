@@ -36,6 +36,8 @@ import {
   type DimensionPack,
 } from "@/lib/scanners";
 import { recordScanTelemetry } from "@/lib/admin-telemetry";
+import { verifySessionToken, recordUserScan, incrementUserScans } from "@/lib/auth-store";
+import { parseEdgeClientInfo } from "@/lib/device-telemetry";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -237,7 +239,11 @@ export async function POST(req: Request) {
         writeScanCache(url, mode, result);
 
         try {
-          const country = request.headers.get("cf-ipcountry") || "IN";
+          const edgeInfo = parseEdgeClientInfo(req.headers);
+          const country = edgeInfo.country || "IN";
+          const city = edgeInfo.city || "Unknown City";
+
+          // Record global platform telemetry
           recordScanTelemetry({
             url,
             mode,
@@ -246,6 +252,30 @@ export async function POST(req: Request) {
             durationMs: Date.now() - startTime,
             country,
           });
+
+          // Associate scan with authenticated user if session token present
+          const authHeader = req.headers.get("authorization") || "";
+          const cookieHeader = req.headers.get("cookie") || "";
+          const cookieMatch = cookieHeader.match(/kodand_session=([^;]+)/);
+          const token = authHeader.replace(/^Bearer\s+/i, "").trim() || (cookieMatch ? cookieMatch[1] : "");
+
+          if (token) {
+            const payload = verifySessionToken(token);
+            if (payload?.sub) {
+              incrementUserScans(payload.sub);
+              recordUserScan(payload.sub, {
+                url,
+                score: Math.round(digitalHealthScore),
+                mode,
+                grade,
+                issuesCount: topPriorities.length,
+                device: edgeInfo.deviceName || "Web Browser",
+                ip: edgeInfo.ip || "127.0.0.1",
+                country,
+                city,
+              });
+            }
+          }
         } catch {
           // Non-blocking telemetry
         }
