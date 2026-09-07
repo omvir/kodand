@@ -1,0 +1,222 @@
+{
+  "title": "KODAND Automated Test Suite Execution Report",
+  "environment": "http://localhost:3000",
+  "executedAt": "2026-09-07T23:23:04.853Z",
+  "totalTests": 30,
+  "passed": 30,
+  "failed": 0,
+  "passRate": "100%",
+  "totalDurationMs": 15779,
+  "results": [
+    {
+      "testId": "TC-EDGE-01",
+      "name": "Cloudflare Edge Runtime Verification",
+      "passed": true,
+      "details": "Status: 200, Server: local",
+      "durationMs": 94
+    },
+    {
+      "testId": "TC-API-07",
+      "name": "Invalid Scan Payload Handling (Missing URL)",
+      "passed": true,
+      "details": "Expected HTTP 400, Received: HTTP 400",
+      "durationMs": 325
+    },
+    {
+      "testId": "TC-API-01",
+      "name": "Content Optimizer Scan Mode",
+      "passed": true,
+      "details": "Score: 100, Events: 19",
+      "durationMs": 361
+    },
+    {
+      "testId": "TC-API-02",
+      "name": "Security & Intel Scan Mode (DNS/TLS/WHOIS/CVE)",
+      "passed": true,
+      "details": "Score: 64, Intel Present: true",
+      "durationMs": 1753
+    },
+    {
+      "testId": "TC-API-03",
+      "name": "SEO Diagnostic Scan Mode",
+      "passed": true,
+      "details": "Score: 72.5, Findings: 6",
+      "durationMs": 112
+    },
+    {
+      "testId": "TC-API-04",
+      "name": "Performance Benchmark Scan Mode",
+      "passed": true,
+      "details": "Score: 98",
+      "durationMs": 100
+    },
+    {
+      "testId": "TC-API-05",
+      "name": "Accessibility Audit Scan Mode",
+      "passed": true,
+      "details": "Score: 100",
+      "durationMs": 107
+    },
+    {
+      "testId": "TC-PERF-01",
+      "name": "In-Memory 5-Min Scan Cache (Immediate Repeat)",
+      "passed": true,
+      "details": "Resolved in 50ms (Expected < 1000ms for cache hit)",
+      "durationMs": 50
+    },
+    {
+      "testId": "TC-API-06",
+      "name": "Full 360° Multi-Dimension Scan Aggregation",
+      "passed": true,
+      "details": "Overall Score: 84.53/100, Grade: B",
+      "durationMs": 1309
+    },
+    {
+      "testId": "TC-MKT-01",
+      "name": "Google Autocomplete Keyword Suggestions",
+      "passed": true,
+      "details": "Received: 102 keyword suggestions",
+      "durationMs": 649
+    },
+    {
+      "testId": "TC-MKT-02",
+      "name": "Digital Marketing Meta Tag Generator",
+      "passed": true,
+      "details": "Generated Title: \"Example Domain — Official Website & Digi...\"",
+      "durationMs": 140
+    },
+    {
+      "testId": "TC-MKT-03",
+      "name": "Backlink Profile & Link Diversity Check",
+      "passed": true,
+      "details": "Est. Backlinks: 1250000, Quality: high",
+      "durationMs": 112
+    },
+    {
+      "testId": "TC-SAAS-01",
+      "name": "SaaS Pricing Page & Subscription Tiers Check",
+      "passed": true,
+      "details": "HTTP 200, contains Agency Pro & White-Label tiers",
+      "durationMs": 374
+    },
+    {
+      "testId": "TC-SAAS-02",
+      "name": "Competitor Side-by-Side Audit Page Check",
+      "passed": true,
+      "details": "HTTP 200, loaded competitor audit workspace",
+      "durationMs": 375
+    },
+    {
+      "testId": "TC-ADMIN-01",
+      "name": "Admin Dashboard Security & PIN Protection",
+      "passed": true,
+      "details": "Expected HTTP 401 Unauthorized, Received: HTTP 401",
+      "durationMs": 45
+    },
+    {
+      "testId": "TC-ADMIN-02",
+      "name": "Live User Monitoring & Scan Telemetry Feed",
+      "passed": true,
+      "details": "Total Scans: 148, Unique Domains: 8, Events: 4",
+      "durationMs": 42
+    },
+    {
+      "testId": "TC-UPI-01",
+      "name": "India UPI Payment Gateway & INR Currency Switcher",
+      "passed": true,
+      "details": "HTTP 200, contains UPI & INR currency options",
+      "durationMs": 269
+    },
+    {
+      "testId": "TC-AUTH-01",
+      "name": "User Registration & Account Creation",
+      "passed": true,
+      "details": "Created: test_1788823375289@example.com, Tier: free",
+      "durationMs": 52
+    },
+    {
+      "testId": "TC-AUTH-02",
+      "name": "User & Admin Authentication Login",
+      "passed": true,
+      "details": "Authenticated Admin: admin@kodand.com (admin)",
+      "durationMs": 187
+    },
+    {
+      "testId": "TC-AUTH-03",
+      "name": "Authenticated Profile & Session Verification",
+      "passed": true,
+      "details": "Verified Profile: Automated Tester (test_1788823375289@example.com)",
+      "durationMs": 152
+    },
+    {
+      "testId": "TC-ADMIN-USERS",
+      "name": "Admin User Monitoring & Subscription Tier Control",
+      "passed": true,
+      "details": "Total Users Monitored: 9, Tier Modification: SUCCESS",
+      "durationMs": 258
+    },
+    {
+      "testId": "TC-DEVICE-TELEMETRY",
+      "name": "Comprehensive Device Telemetry & Hardware Fingerprinting",
+      "passed": true,
+      "details": "Registered Device: Google Chrome on Windows 11 (Desktop), Resolution: 2560x1440 (1.0x DPR)",
+      "durationMs": 116
+    },
+    {
+      "testId": "TC-ADMIN-EXPORT",
+      "name": "Admin Complete Data Export (CSV & JSON Users/Devices)",
+      "passed": true,
+      "details": "Users CSV lines: 10, Devices CSV lines: 14",
+      "durationMs": 332
+    },
+    {
+      "testId": "TC-AUTH-GOOGLE",
+      "name": "Google Sign-In OAuth Redirection & Session Gateway",
+      "passed": true,
+      "details": "HTTP Status: 307, Location: http://localhost:3000/account",
+      "durationMs": 159
+    },
+    {
+      "testId": "TC-AUTH-PWD-CHG",
+      "name": "User In-App Password Change with Current Password Verification",
+      "passed": true,
+      "details": "Password Update: SUCCESS",
+      "durationMs": 140
+    },
+    {
+      "testId": "TC-AUTH-PWD-RST",
+      "name": "Cryptographic Token-Based Forgot & Reset Password Flow",
+      "passed": true,
+      "details": "Token Generated: true, Password Reset Verified: YES",
+      "durationMs": 287
+    },
+    {
+      "testId": "TC-DEEP-HARDWARE",
+      "name": "Deep GPU Graphics, Canvas, Audio & AdBlock Telemetry",
+      "passed": true,
+      "details": "GPU: ANGLE (NVIDIA, NVIDIA GeForce ..., Canvas: cvs-kodand-789a",
+      "durationMs": 45
+    },
+    {
+      "testId": "TC-UI-PAGES",
+      "name": "Frontend Application Core Routes & Page Availability",
+      "passed": true,
+      "details": "All 12 routes returned HTTP 200: /, /pricing, /compare, /keywords, /marketing, /backlinks, /login, /signup, /forgot-password, /reset-password, /account, /admin",
+      "durationMs": 2521
+    },
+    {
+      "testId": "TC-AUTH-SUSPEND",
+      "name": "User Account Suspension & Access Block Enforcement",
+      "passed": true,
+      "details": "Suspension Block Verified: HTTP 401 (Suspended)",
+      "durationMs": 879
+    },
+    {
+      "testId": "TC-D1-DATABASE",
+      "name": "Cloudflare D1 Remote Database Schema & Table Verification",
+      "passed": true,
+      "details": "Verified D1 Database ca1b0b5e-f964-4a8a-bdf9-ec94bab27c0e (8 Active Tables)",
+      "durationMs": 4434
+    }
+  ]
+}

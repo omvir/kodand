@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { registerUser, authenticateUser, createSessionToken } from "@/lib/auth-store";
 import { parseEdgeClientInfo } from "@/lib/device-telemetry";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const host = req.headers.get("host") || "localhost:3000";

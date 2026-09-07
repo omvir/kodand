@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { recordUserDevice, verifySessionToken, getUserById } from "@/lib/auth-store";
 import { parseEdgeClientInfo } from "@/lib/device-telemetry";
 
-export const runtime = "edge";
-
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization") || req.headers.get("Authorization") || "";

@@ -7,8 +7,6 @@ import {
   verifySessionToken,
 } from "@/lib/auth-store";
 
-export const runtime = "edge";
-
 function checkAdminAuth(req: NextRequest): boolean {
   // Check PIN
   const pin = req.nextUrl.searchParams.get("pin") || req.headers.get("x-admin-pin");

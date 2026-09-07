@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken, getUserById } from "@/lib/auth-store";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization") || req.headers.get("Authorization") || "";
   const tokenFromHeader = authHeader.replace(/^Bearer\s+/i, "").trim();

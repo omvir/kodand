@@ -569,11 +569,22 @@ function recordDeviceForUser(
   if (existing) {
     existing.lastSeenAt = now;
     if (isLogin) existing.loginCount += 1;
+    if (telemetry.deviceName) existing.deviceName = telemetry.deviceName;
+    if (telemetry.browser && telemetry.browser !== "Unknown Browser") existing.browser = telemetry.browser;
+    if (telemetry.os && telemetry.os !== "Unknown OS") existing.os = telemetry.os;
+    if (telemetry.deviceType) existing.deviceType = telemetry.deviceType;
+    if (telemetry.screenResolution) existing.screenResolution = telemetry.screenResolution;
+    if (telemetry.colorDepth) existing.colorDepth = telemetry.colorDepth;
+    if (telemetry.touchSupport !== undefined) existing.touchSupport = telemetry.touchSupport;
+    if (telemetry.language) existing.language = telemetry.language;
+    if (telemetry.languages) existing.languages = telemetry.languages;
+    if (telemetry.timeZone) existing.timeZone = telemetry.timeZone;
     if (telemetry.ip) existing.ip = telemetry.ip;
     if (telemetry.country) existing.country = telemetry.country;
     if (telemetry.city) existing.city = telemetry.city;
     if (telemetry.hardwareConcurrency) existing.hardwareConcurrency = telemetry.hardwareConcurrency;
     if (telemetry.deviceMemory) existing.deviceMemory = telemetry.deviceMemory;
+    if (telemetry.connectionType) existing.connectionType = telemetry.connectionType;
     if (telemetry.gpuRenderer) existing.gpuRenderer = telemetry.gpuRenderer;
     if (telemetry.gpuVendor) existing.gpuVendor = telemetry.gpuVendor;
     if (telemetry.canvasFingerprint) existing.canvasFingerprint = telemetry.canvasFingerprint;

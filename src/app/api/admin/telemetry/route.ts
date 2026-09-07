@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTelemetryStats, recordScanTelemetry } from "@/lib/admin-telemetry";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const pin = searchParams.get("pin") || req.headers.get("x-admin-pin");

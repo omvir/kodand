@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllUsers, verifySessionToken } from "@/lib/auth-store";
 
-export const runtime = "edge";
-
 function checkAdminAuth(req: NextRequest): boolean {
   const pin = req.nextUrl.searchParams.get("pin") || req.headers.get("x-admin-pin");
   if (pin === (process.env.ADMIN_PIN || "kodand2026")) return true;

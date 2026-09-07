@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken, updateUserPassword } from "@/lib/auth-store";
 
-export const runtime = "edge";
-
 export async function POST(req: NextRequest) {
   try {
     const token =
