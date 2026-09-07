@@ -9,7 +9,7 @@
  *   node tests/test-runner.mjs http://localhost:3000
  */
 
-const BASE_URL = process.argv[2] || "https://kodand.pages.dev";
+const BASE_URL = process.argv[2] || process.env.BASE_URL || "http://localhost:3000";
 const TARGET_URL = "https://example.com";
 
 const colors = {
@@ -129,14 +129,15 @@ async function runTestSuite() {
   // TC-API-01: Content Optimizer Scan
   try {
     const { events, durationMs } = await runScan(TARGET_URL, "content");
-    const hasComplete = events.some((e) => e.type === "complete");
-    const resultEvent = events.find((e) => e.type === "result");
-    const passed = hasComplete && !!resultEvent?.result?.content;
+    const completeEvent = events.find((e) => e.type === "complete");
+    const result = completeEvent?.result;
+    const content = result?.content ?? result?.grammar;
+    const passed = !!completeEvent && !!content;
     recordResult(
       "TC-API-01",
       "Content Optimizer Scan Mode",
       passed,
-      `Score: ${resultEvent?.result?.content?.score ?? "N/A"}, Events: ${events.length}`,
+      `Score: ${content?.score ?? "N/A"}, Events: ${events.length}`,
       durationMs
     );
   } catch (err) {
@@ -146,15 +147,15 @@ async function runTestSuite() {
   // TC-API-02: Security & Intel Scan
   try {
     const { events, durationMs } = await runScan(TARGET_URL, "security");
-    const hasComplete = events.some((e) => e.type === "complete");
-    const resultEvent = events.find((e) => e.type === "result");
-    const hasIntel = !!resultEvent?.result?.domainIntel;
-    const passed = hasComplete && !!resultEvent?.result?.security;
+    const completeEvent = events.find((e) => e.type === "complete");
+    const result = completeEvent?.result;
+    const hasIntel = !!result?.security?.intel;
+    const passed = !!completeEvent && !!result?.security;
     recordResult(
       "TC-API-02",
       "Security & Intel Scan Mode (DNS/TLS/WHOIS/CVE)",
       passed,
-      `Score: ${resultEvent?.result?.security?.score ?? "N/A"}, Intel Present: ${hasIntel}`,
+      `Score: ${result?.security?.score ?? "N/A"}, Intel Present: ${hasIntel}`,
       durationMs
     );
   } catch (err) {
@@ -164,14 +165,14 @@ async function runTestSuite() {
   // TC-API-03: SEO Diagnostic Scan
   try {
     const { events, durationMs } = await runScan(TARGET_URL, "seo");
-    const hasComplete = events.some((e) => e.type === "complete");
-    const resultEvent = events.find((e) => e.type === "result");
-    const passed = hasComplete && !!resultEvent?.result?.seo;
+    const completeEvent = events.find((e) => e.type === "complete");
+    const result = completeEvent?.result;
+    const passed = !!completeEvent && !!result?.seo;
     recordResult(
       "TC-API-03",
       "SEO Diagnostic Scan Mode",
       passed,
-      `Score: ${resultEvent?.result?.seo?.score ?? "N/A"}, Findings: ${resultEvent?.result?.seo?.findings?.length ?? 0}`,
+      `Score: ${result?.seo?.score ?? "N/A"}, Findings: ${result?.seo?.findings?.length ?? 0}`,
       durationMs
     );
   } catch (err) {
@@ -181,14 +182,14 @@ async function runTestSuite() {
   // TC-API-04: Performance Benchmark Scan
   try {
     const { events, durationMs } = await runScan(TARGET_URL, "performance");
-    const hasComplete = events.some((e) => e.type === "complete");
-    const resultEvent = events.find((e) => e.type === "result");
-    const passed = hasComplete && !!resultEvent?.result?.performance;
+    const completeEvent = events.find((e) => e.type === "complete");
+    const result = completeEvent?.result;
+    const passed = !!completeEvent && !!result?.performance;
     recordResult(
       "TC-API-04",
       "Performance Benchmark Scan Mode",
       passed,
-      `Score: ${resultEvent?.result?.performance?.score ?? "N/A"}`,
+      `Score: ${result?.performance?.score ?? "N/A"}`,
       durationMs
     );
   } catch (err) {
@@ -198,14 +199,14 @@ async function runTestSuite() {
   // TC-API-05: Accessibility Audit Scan
   try {
     const { events, durationMs } = await runScan(TARGET_URL, "accessibility");
-    const hasComplete = events.some((e) => e.type === "complete");
-    const resultEvent = events.find((e) => e.type === "result");
-    const passed = hasComplete && !!resultEvent?.result?.accessibility;
+    const completeEvent = events.find((e) => e.type === "complete");
+    const result = completeEvent?.result;
+    const passed = !!completeEvent && !!result?.accessibility;
     recordResult(
       "TC-API-05",
       "Accessibility Audit Scan Mode",
       passed,
-      `Score: ${resultEvent?.result?.accessibility?.score ?? "N/A"}`,
+      `Score: ${result?.accessibility?.score ?? "N/A"}`,
       durationMs
     );
   } catch (err) {
@@ -232,9 +233,10 @@ async function runTestSuite() {
   // TC-API-06: Full 360° Multi-Dimension Scan
   try {
     const { events, durationMs } = await runScan(TARGET_URL, "full");
-    const resultEvent = events.find((e) => e.type === "result");
-    const overallScore = resultEvent?.result?.overallScore;
-    const overallGrade = resultEvent?.result?.overallGrade;
+    const completeEvent = events.find((e) => e.type === "complete");
+    const result = completeEvent?.result;
+    const overallScore = result?.digitalHealthScore ?? result?.overallScore;
+    const overallGrade = result?.grade ?? result?.overallGrade;
     const passed = overallScore != null && !!overallGrade;
     recordResult(
       "TC-API-06",
@@ -245,6 +247,75 @@ async function runTestSuite() {
     );
   } catch (err) {
     recordResult("TC-API-06", "Full 360° Scan Aggregation", false, err.message);
+  }
+
+  // TC-MKT-01: Keywords Suggestions Endpoint
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/keywords`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "suggest", query: "seo tools" }),
+    });
+    const data = await resp.json();
+    const passed = resp.ok && Array.isArray(data.suggestions) && data.suggestions.length > 0;
+    recordResult(
+      "TC-MKT-01",
+      "Google Autocomplete Keyword Suggestions",
+      passed,
+      `Received: ${data.suggestions?.length ?? 0} keyword suggestions`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-MKT-01", "Google Autocomplete Keyword Suggestions", false, err.message);
+  }
+
+  // TC-MKT-02: Marketing Meta Tag Generator
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/marketing`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "meta-generator",
+        url: "https://example.com",
+        title: "Example Domain",
+      }),
+    });
+    const data = await resp.json();
+    const meta = data.metaTags || data.result;
+    const passed = resp.ok && !!meta?.title && !!meta?.description;
+    recordResult(
+      "TC-MKT-02",
+      "Digital Marketing Meta Tag Generator",
+      passed,
+      `Generated Title: "${meta?.title?.slice(0, 40) ?? "N/A"}..."`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-MKT-02", "Digital Marketing Meta Tag Generator", false, err.message);
+  }
+
+  // TC-MKT-03: Backlink Checker Endpoint
+  try {
+    const t0 = Date.now();
+    const resp = await fetch(`${BASE_URL}/api/backlinks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: "https://example.com" }),
+    });
+    const data = await resp.json();
+    const bl = data.backlinks || data;
+    const passed = resp.ok && typeof bl?.estimatedBacklinks === "number";
+    recordResult(
+      "TC-MKT-03",
+      "Backlink Profile & Link Diversity Check",
+      passed,
+      `Est. Backlinks: ${bl?.estimatedBacklinks}, Quality: ${bl?.qualityScore}`,
+      Date.now() - t0
+    );
+  } catch (err) {
+    recordResult("TC-MKT-03", "Backlink Profile & Link Diversity Check", false, err.message);
   }
 
   // Print Summary Table

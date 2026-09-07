@@ -1,0 +1,144 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { KodandLogo } from "@/components/kodand-logo";
+import { Activity, Globe, KeyRound, Loader2, Share2, Sparkles, Target } from "lucide-react";
+import { prettyHost } from "@/components/dashboard/dashboard-types";
+
+export function AppHeader({
+  domain,
+  onChangeDomain,
+  scanning,
+  onToggleActivity,
+  activityOpen,
+}: {
+  domain?: string | null;
+  onChangeDomain?: () => void;
+  scanning?: boolean;
+  onToggleActivity?: () => void;
+  activityOpen?: boolean;
+}) {
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: "/", label: "Audit 360°", icon: Globe },
+    { href: "/keywords", label: "Keywords", icon: KeyRound },
+    { href: "/marketing", label: "Marketing", icon: Sparkles },
+    { href: "/backlinks", label: "Backlinks", icon: Share2 },
+  ];
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-emerald-500/15 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/65">
+      <div className="mx-auto max-w-[1600px] px-3 sm:px-4 h-14 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-5 min-w-0">
+          <Link href="/" className="flex items-center gap-2">
+            <KodandLogo size="md" />
+          </Link>
+
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    active
+                      ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                      : "text-muted-foreground hover:text-emerald-200 hover:bg-emerald-500/5"
+                  }`}
+                >
+                  <Icon className="size-3.5" />
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Target chip */}
+        {domain && (
+          <div className="hidden lg:flex items-center gap-2 flex-1 max-w-sm ml-2">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/25 bg-emerald-500/5 text-sm">
+              <Target className="size-3.5 text-emerald-400 flex-shrink-0" />
+              <span className="text-muted-foreground text-[10px] font-mono uppercase tracking-wider">Target</span>
+              <span className="font-semibold text-foreground text-xs truncate max-w-[180px]">
+                {prettyHost(domain)}
+              </span>
+              {onChangeDomain && (
+                <button
+                  type="button"
+                  onClick={onChangeDomain}
+                  className="ml-1 text-xs text-emerald-300 hover:text-emerald-200 underline underline-offset-2"
+                >
+                  Change
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          {scanning && (
+            <div className="flex items-center gap-1.5 text-xs text-emerald-300 font-mono">
+              <Loader2 className="size-3.5 animate-spin" /> scanning
+            </div>
+          )}
+          {onToggleActivity && (
+            <button
+              type="button"
+              onClick={onToggleActivity}
+              className="lg:hidden p-2 rounded-md border border-emerald-500/20 text-emerald-200 hover:bg-emerald-500/10"
+              aria-label="Toggle activity stream"
+            >
+              <Activity className={`size-4 ${activityOpen ? "text-emerald-300" : ""}`} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile nav and target row */}
+      <div className="md:hidden px-3 pb-2 flex flex-col gap-2">
+        <div className="flex items-center justify-around gap-1 pt-1 border-t border-emerald-500/10">
+          {navLinks.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                  active
+                    ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                    : "text-muted-foreground hover:text-emerald-200"
+                }`}
+              >
+                <Icon className="size-3" />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {domain && (
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/25 bg-emerald-500/5 text-sm">
+            <Target className="size-3.5 text-emerald-400 flex-shrink-0" />
+            <span className="text-muted-foreground text-[10px] font-mono uppercase tracking-wider">Target</span>
+            <span className="font-semibold text-foreground text-xs truncate">{prettyHost(domain)}</span>
+            {onChangeDomain && (
+              <button
+                type="button"
+                onClick={onChangeDomain}
+                className="ml-auto text-xs text-emerald-300 hover:text-emerald-200 underline underline-offset-2"
+              >
+                Change
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
