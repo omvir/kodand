@@ -29,11 +29,12 @@ export const metadata: Metadata = {
   authors: [{ name: "KODAND" }],
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/kodand-logo.png", type: "image/png" },
+      { url: "/favicon.svg?v=2", type: "image/svg+xml" },
+      { url: "/favicon.png?v=2", type: "image/png" },
+      { url: "/favicon.ico?v=2", sizes: "any" },
     ],
-    shortcut: "/favicon.svg",
-    apple: "/kodand-logo.png",
+    shortcut: "/favicon.svg?v=2",
+    apple: "/favicon.png?v=2",
   },
   openGraph: {
     title: "KODAND - 360° Website Audit",
