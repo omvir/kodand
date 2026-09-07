@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Lock,
   ShieldAlert,
+  QrCode,
 } from "lucide-react";
 
 export default function AccountPage() {
@@ -147,12 +148,23 @@ export default function AccountPage() {
                 style={{ width: `${Math.max(scansPct, 2)}%` }}
               />
             </div>
-            {user.tier === "free" && (
-              <div className="mt-3 flex items-center justify-between p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs">
-                <span className="text-zinc-300">Upgrade to unlock 1,000 scans & white-label reports.</span>
-                <Button asChild size="sm" className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs h-7">
-                  <Link href="/pricing">Upgrade Plan</Link>
-                </Button>
+            {user.tier !== "agency" && (
+              <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-zinc-900 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div>
+                  <div className="flex items-center gap-1.5 font-bold text-white mb-0.5">
+                    <span>🇮🇳</span> Instant UPI Upgrade (Starter ₹1,299 / Agency Pro ₹3,499)
+                  </div>
+                  <div className="text-[11px] text-zinc-400">
+                    Pay directly to verified UPI ID: <strong className="text-emerald-400 font-mono">atomicpixel0911-1@okhdfcbank</strong>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button asChild size="sm" className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs h-8">
+                    <Link href="/pricing">
+                      <QrCode className="size-3.5 mr-1" /> Pay with UPI
+                    </Link>
+                  </Button>
+                </div>
               </div>
             )}
           </div>

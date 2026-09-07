@@ -116,19 +116,40 @@ export function UpiPaymentModal({
               </div>
             </div>
 
+            {/* Official UPI ID Banner */}
+            <div className="p-3 rounded-xl bg-zinc-900/90 border border-emerald-500/40 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-[10px] text-zinc-400 block uppercase font-mono tracking-wider">Official UPI ID (VPA)</span>
+                <span className="font-mono font-bold text-xs sm:text-sm text-emerald-400 truncate block">
+                  {upiId}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyUpi}
+                className="shrink-0 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1 transition-colors"
+              >
+                {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3 text-emerald-400" />}
+                <span>{copied ? "Copied" : "Copy"}</span>
+              </button>
+            </div>
+
             {/* QR Code Container */}
             <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-white text-black shadow-inner">
               <div className="text-[11px] font-bold text-zinc-800 mb-2 flex items-center gap-1.5 font-mono uppercase tracking-wider">
-                <QrCode className="size-3.5" /> Scan QR with Any UPI App
+                <QrCode className="size-3.5" /> Scan to Pay with Google Pay / Any UPI App
               </div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={qrUrl}
-                alt="UPI Payment QR Code"
-                className="size-44 rounded-lg shadow-sm border border-zinc-200"
+                src="/upi-qr.png"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = qrUrl;
+                }}
+                alt={`UPI Payment QR Code - ${upiId}`}
+                className="size-48 rounded-lg shadow-sm border border-zinc-200 object-contain"
               />
               <div className="text-[10px] text-zinc-600 mt-2 font-mono flex items-center gap-2">
-                <span>Google Pay</span> · <span>PhonePe</span> · <span>Paytm</span> · <span>CRED</span>
+                <span>Google Pay</span> · <span>PhonePe</span> · <span>Paytm</span> · <span>BHIM</span>
               </div>
             </div>
 

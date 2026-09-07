@@ -19,6 +19,8 @@ import {
   ArrowRight,
   Calculator,
   QrCode,
+  Copy,
+  Smartphone,
 } from "lucide-react";
 
 export default function PricingPage() {
@@ -27,6 +29,15 @@ export default function PricingPage() {
   const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
   const [upiModalOpen, setUpiModalOpen] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<"starter" | "agency">("agency");
+  const [copiedUpi, setCopiedUpi] = React.useState(false);
+
+  const upiId = process.env.NEXT_PUBLIC_UPI_ID || "atomicpixel0911-1@okhdfcbank";
+
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText(upiId);
+    setCopiedUpi(true);
+    setTimeout(() => setCopiedUpi(false), 2500);
+  };
 
   // Interactive Agency ROI Calculator state
   const [clientCount, setClientCount] = React.useState(5);
@@ -352,6 +363,78 @@ export default function PricingPage() {
               </Button>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Dedicated Instant UPI Payment Showcase */}
+        <div className="mb-16 p-6 sm:p-8 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 via-zinc-950 to-zinc-950 shadow-2xl">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="space-y-4 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider">
+                🇮🇳 Instant India UPI Payment Gate
+              </div>
+              <h3 className="text-2xl font-black text-white tracking-tight">
+                Scan & Pay with Any UPI App (0% Gateway Fees)
+              </h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Pay instantly using Google Pay, PhonePe, Paytm, BHIM, or CRED. No foreign transaction fees, no credit card lock-in, and instant activation for Indian agencies and developers.
+              </p>
+
+              {/* Official UPI ID Banner */}
+              <div className="p-4 rounded-xl bg-zinc-900 border border-emerald-500/30 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="text-[10px] text-zinc-400 font-mono uppercase block">Official Verified UPI ID</span>
+                  <span className="font-mono font-bold text-sm sm:text-base text-emerald-400 truncate block select-all">
+                    {upiId}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyUpi}
+                  className="shrink-0 px-3 py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95"
+                >
+                  {copiedUpi ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5 text-emerald-400" />}
+                  <span>{copiedUpi ? "Copied UPI ID" : "Copy UPI ID"}</span>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button
+                  onClick={() => {
+                    setSelectedTier("agency");
+                    setUpiModalOpen(true);
+                  }}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs h-9 px-4 shadow-md shadow-emerald-500/20"
+                >
+                  <QrCode className="size-3.5 mr-1.5" /> Open UPI Modal & Verify UTR
+                </Button>
+                <a
+                  href={`upi://pay?pa=${upiId}&pn=KODAND%20Technologies&cu=INR&tn=KODAND_SUBSCRIPTION`}
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white px-3 py-2 rounded-lg border border-zinc-800 bg-zinc-900"
+                >
+                  <Smartphone className="size-3.5 text-emerald-400" /> Open Mobile UPI App
+                </a>
+              </div>
+            </div>
+
+            {/* Visual QR Code Display */}
+            <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-white text-black shadow-2xl shrink-0 border-2 border-emerald-500/40">
+              <div className="text-[11px] font-bold text-zinc-800 mb-2.5 flex items-center gap-1.5 font-mono uppercase tracking-wider">
+                <QrCode className="size-4 text-emerald-600" /> Google Pay / PhonePe QR
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/upi-qr.png"
+                alt="Official KODAND UPI QR Code"
+                className="size-52 sm:size-60 rounded-xl object-contain shadow-sm border border-zinc-200"
+              />
+              <div className="text-[11px] font-mono font-bold text-zinc-900 mt-2.5">
+                {upiId}
+              </div>
+              <div className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                Google Pay · PhonePe · Paytm · BHIM
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Interactive Agency ROI Calculator */}
