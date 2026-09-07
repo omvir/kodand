@@ -4,13 +4,29 @@ pages_build_output_dir = ".vercel/output/static"
 compatibility_date = "2024-11-01"
 compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
 
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "kodand"
+database_id = "ca1b0b5e-f964-4a8a-bdf9-ec94bab27c0e"
+
 [env.production]
 compatibility_date = "2024-11-01"
 compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
 
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "kodand"
+database_id = "ca1b0b5e-f964-4a8a-bdf9-ec94bab27c0e"
+
 [env.preview]
 compatibility_date = "2024-11-01"
 compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "kodand"
+database_id = "ca1b0b5e-f964-4a8a-bdf9-ec94bab27c0e"
 
 [vars]
 NODE_VERSION = "20"
