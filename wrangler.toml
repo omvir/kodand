@@ -1,15 +1,19 @@
 # Cloudflare Pages configuration for KODAND
-# Place this file in the project root before deploying.
-
 name = "kodand"
-compatibility_date = "2024-11-01"
-
-# Enable Node.js compatibility mode and AsyncLocalStorage for API routes
-compatibility_flags = ["nodejs_compat", "nodejs_als"]
-
-# Output directory from @cloudflare/next-on-pages
 pages_build_output_dir = ".vercel/output/static"
+compatibility_date = "2024-11-01"
+compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
 
-# Environment variables (set via dashboard or here)
+[env.production]
+compatibility_date = "2024-11-01"
+compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
+
+[env.preview]
+compatibility_date = "2024-11-01"
+compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
+
 [vars]
+NODE_VERSION = "20"
+
+[env.production.vars]
 NODE_VERSION = "20"
