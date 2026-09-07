@@ -110,3 +110,21 @@
 |---|---|---|---|---|---|---|
 | **TC-D1-01** | Remote Cloudflare D1 Connection | Critical | `ca1b0b5e-f964-4a8a-bdf9-ec94bab27c0e` | Table presence & read latency | All 8 tables present, remote query executes in under 1ms. | **PASSED** |
 | **TC-D1-02** | Better Auth D1 Tables & Migrations | High | `user`, `session`, `account` | Schema synchronization | Official Better Auth tables synced with custom user fields in D1 SQLite. | **PASSED** |
+
+---
+
+### Suite 9: Playwright Visual & Browser Inspection Suite
+
+> **Runner Command:** `npm run test:visual` (or `npx playwright test tests/visual.spec.ts`)  
+> **Output Artifacts:** `tests/reports/screenshots/` and `tests/reports/playwright-report/`
+
+| Test ID | Test Title | Priority | Route / Modal | Visual Verification Focus | Expected Output Screenshot |
+|---|---|---|---|---|---|
+| **TC-VIS-01** | Landing Page Aesthetics & Dark Mode | High | `/` | Hero typography, CTA badges, theme contrast | `01-landing-page.png` |
+| **TC-VIS-02** | Scanner Dashboard Transition | High | `/` -> Lock Target | Domain header, score badges, stage cards | `02-scanner-dashboard.png` |
+| **TC-VIS-03** | India UPI Payment Modal (`atomicpixel0911-1@okhdfcbank`) | Critical | `/pricing` -> UPI Modal | Dynamic QR code, UPI ID `atomicpixel0911-1@okhdfcbank`, 12-digit UTR input | `03-upi-payment-modal.png` |
+| **TC-VIS-04** | Competitor Audit Workspace | Medium | `/compare` | Dual-URL inputs, side-by-side comparison matrix | `04-compare-matrix.png` |
+| **TC-VIS-05** | Auth Pages with Google Button | High | `/login` & `/signup` | Official Google "G" logo button, OR divider | `05-login-page.png` & `06-signup-page.png` |
+| **TC-VIS-06** | Password Recovery Workflow | High | `/forgot-password` & `/reset-password` | Email submission card, token-based new password card | `07-forgot-password.png` & `08-reset-password.png` |
+| **TC-VIS-07** | Admin Control Center & Telemetry | Critical | `/admin` (PIN unlocked) | Real-time scan graphs, user device telemetry cards | `09-admin-control-center.png` |
+

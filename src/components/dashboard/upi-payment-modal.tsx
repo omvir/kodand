@@ -41,7 +41,7 @@ export function UpiPaymentModal({
     : (cycle === "yearly" ? 34990 : 3499);
 
   const tierLabel = tier === "starter" ? "Starter Growth" : "Agency Pro";
-  const upiId = "kodand.pay@icici";
+  const upiId = process.env.NEXT_PUBLIC_UPI_ID || "atomicpixel0911-1@okhdfcbank";
   const upiUri = `upi://pay?pa=${upiId}&pn=KODAND%20Technologies&am=${amount}&cu=INR&tn=KODAND_${tier.toUpperCase()}_${cycle.toUpperCase()}`;
 
   // Use reliable QuickChart / qrserver SVG image API for standard QR rendering
