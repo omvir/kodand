@@ -44,8 +44,8 @@ export function UpiPaymentModal({
   const upiId = process.env.NEXT_PUBLIC_UPI_ID || "atomicpixel0911-1@okhdfcbank";
   const upiUri = `upi://pay?pa=${upiId}&pn=KODAND%20Technologies&am=${amount}&cu=INR&tn=KODAND_${tier.toUpperCase()}_${cycle.toUpperCase()}`;
 
-  // Use reliable QuickChart / qrserver SVG image API for standard QR rendering
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}&color=000000&bgcolor=ffffff&margin=2`;
+  // Dynamic High-Res QR code with error correction level H (30%) encoding exact amount
+  const dynamicQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(upiUri)}&color=000000&bgcolor=ffffff&ecc=H&margin=1`;
 
   const handleCopyUpi = () => {
     navigator.clipboard.writeText(upiId);
@@ -116,17 +116,28 @@ export function UpiPaymentModal({
               </div>
             </div>
 
-            {/* QR Code Container - ONLY Scanner QR Code */}
-            <div className="flex items-center justify-center p-4 sm:p-5 rounded-2xl bg-white shadow-2xl mx-auto w-fit">
+            {/* QR Code Container - Dynamic Scanner QR Code with Pre-Filled Amount */}
+            <div className="flex items-center justify-center p-4 sm:p-5 rounded-2xl bg-white shadow-2xl mx-auto w-fit relative group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/upi-qr.png"
+                src={dynamicQrUrl}
                 onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = qrUrl;
+                  (e.currentTarget as HTMLImageElement).src = "/upi-qr.png";
                 }}
-                alt="UPI QR Code"
+                alt={`Scan to Pay ₹${amount.toLocaleString("en-IN")} via UPI`}
                 className="size-52 sm:size-60 rounded-xl object-contain"
               />
+              {/* Central Google Pay Logo Badge */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="size-11 rounded-full bg-white p-1.5 shadow-sm border border-zinc-200/90 flex items-center justify-center">
+                  <svg className="size-7" viewBox="0 0 40 40">
+                    <path d="M19.9 8.2c2.2 0 4.1.8 5.6 2.1l4.2-4.2C27.2 3.8 23.8 2.4 19.9 2.4 12.3 2.4 5.9 6.8 3 13.2l5.1 4c1.4-4.2 5.4-7.2 9.9-7.2z" fill="#EA4335"/>
+                    <path d="M36.8 19.6c0-1.2-.1-2.4-.3-3.6H19.9v6.8h9.5c-.4 2.2-1.7 4.1-3.6 5.4l5.6 4.3c3.3-3.1 5.4-7.6 5.4-12.9z" fill="#4285F4"/>
+                    <path d="M8.1 22.8c-.4-1.2-.6-2.5-.6-3.8s.2-2.6.6-3.8l-5.1-4C1.1 13.8 0 16.8 0 20s1.1 6.2 3 8.8l5.1-4z" fill="#FBBC05"/>
+                    <path d="M19.9 37.6c5.4 0 9.9-1.8 13.2-4.9l-5.6-4.3c-1.8 1.2-4.1 2-7.6 2-4.5 0-8.5-3-9.9-7.2l-5.1 4c2.9 6.4 9.3 10.8 16.9 10.8z" fill="#34A853"/>
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Mobile Intent Direct Launch & Copy */}
