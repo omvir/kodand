@@ -416,23 +416,14 @@ export default function PricingPage() {
               </div>
             </div>
 
-            {/* Visual QR Code Display */}
-            <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-white text-black shadow-2xl shrink-0 border-2 border-emerald-500/40">
-              <div className="text-[11px] font-bold text-zinc-800 mb-2.5 flex items-center gap-1.5 font-mono uppercase tracking-wider">
-                <QrCode className="size-4 text-emerald-600" /> Google Pay / PhonePe QR
-              </div>
+            {/* Visual QR Code Display - ONLY Scanner QR Code */}
+            <div className="flex items-center justify-center p-4 sm:p-5 rounded-2xl bg-white shadow-2xl shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/upi-qr.png"
-                alt="Official KODAND UPI QR Code"
-                className="size-52 sm:size-60 rounded-xl object-contain shadow-sm border border-zinc-200"
+                alt="UPI QR Code"
+                className="size-52 sm:size-60 rounded-xl object-contain"
               />
-              <div className="text-[11px] font-mono font-bold text-zinc-900 mt-2.5">
-                {upiId}
-              </div>
-              <div className="text-[10px] text-zinc-500 mt-0.5 font-mono">
-                Google Pay · PhonePe · Paytm · BHIM
-              </div>
             </div>
           </div>
         </div>
